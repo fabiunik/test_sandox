@@ -1,0 +1,188 @@
+<?php
+// Ativa exibição de erros
+
+session_start();
+
+require_once __DIR__ . '/conectarBD.php';
+require_once __DIR__ . '/../model/Usuario.php';
+
+$usuario = new Usuario($pdo);
+
+// Processamento do formulário
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $acao = $_POST['acao'] ?? '';
+
+    try {
+        if ($acao === 'criar') {
+            // Cadastro público
+            $usuario->criar(
+                $_POST['nome'],
+                $_POST['cpf'],
+                $_POST['dtnas'],
+                $_POST['telefone'],
+                $_POST['email'],
+                $_POST['senha'],
+                $_POST['tipo'] ?? 'usuario'
+            );
+            $_SESSION['success'] = "Usuário cadastrado com sucesso!";
+            header("Location: ../view/sucesso_cadastro.php");
+            exit;
+
+        } elseif ($acao === 'login') {
+            // Login público
+            $email = $_POST['email'];
+            $senha = $_POST['senha'];
+
+            if ($usuario->login($email, $senha)) {
+                $_SESSION['success'] = "Login realizado com sucesso!";
+                header("Location: ../view/perfil.php");
+                exit;
+            } else {
+                throw new Exception("E-mail ou senha inválidos.");
+            }
+
+        } elseif ($acao === 'editar') {
+            // Usuário pode editar o próprio perfil
+            if (!isset($_SESSION['usuario_id'])) {
+                throw new Exception("Você precisa estar logado para editar seu perfil.");
+            }
+            if ($_SESSION['usuario_id'] != $_POST['usuario_id']) {
+                throw new Exception("Você só pode editar o seu próprio perfil.");
+            }
+
+            $usuario->editar(
+                intval($_POST['usuario_id']),
+                $_POST['nome'],
+                $_POST['telefone'],
+                $_POST['email']
+            );
+            $_SESSION['success'] = "Perfil atualizado com sucesso!";
+            header("Location: ../view/perfil.php");
+            exit;
+
+        } elseif ($acao === 'excluir') {
+            // Usuário pode excluir o próprio perfil
+            if (!isset($_SESSION['usuario_id'])) {
+                throw new Exception("Você precisa estar logado para excluir seu perfil.");
+            }
+            if ($_SESSION['usuario_id'] != $_POST['usuario_id']) {
+                throw new Exception("Você só pode excluir o seu próprio perfil.");
+            }
+
+            $usuario->deletar(intval($_POST['usuario_id']));
+            session_destroy();
+            $_SESSION['success'] = "Perfil excluído com sucesso!";
+            header("Location: ../view/login.php");
+            exit;
+
+        } elseif ($acao === 'editar_tipo') {
+            // Apenas administradores podem alterar tipo de usuário
+            if (!isset($_SESSION['usuario_id']) || $_SESSION['tipo'] !== 'administrador') {
+                throw new Exception("Acesso negado. Apenas administradores podem realizar esta ação.");
+            }
+            $usuario->atualizarTipo(intval($_POST['usuario_id']), $_POST['novo_tipo']);
+            $_SESSION['success'] = "Tipo de usuário atualizado com sucesso!";
+            header("Location: ../view/painel_administrador.php");
+            exit;
+
+            // Fluxo: recuperar senha 
+        } elseif ($acao === 'recuperar_senha') {
+            $email = $_POST['email'] ?? '';
+
+            $dadosUsuarioEnc = $usuario->buscarPorEmail($email);
+
+            if ($dadosUsuarioEnc) {
+                // Aqui você poderia gerar um token e enviar por e-mail
+                $_SESSION['success'] = "Um link de redefinição foi enviado para seu e-mail.";
+            } else {
+                $_SESSION['error'] = "E-mail não encontrado.";
+            }
+
+            header("Location: ../view/login.php");
+            exit;
+        } elseif ($acao === 'redefinir_senha_token') {
+            $token = $_POST['token'] ?? '';
+            $novaSenha = $_POST['nova_senha'] ?? '';
+            $confirmaSenha = $_POST['confirma_senha'] ?? '';
+
+            if ($novaSenha !== $confirmaSenha) {
+                $_SESSION['error'] = "As senhas não conferem.";
+                header("Location: ../view/redefinir_senha.php?token=$token");
+                exit;
+            }
+
+            $dadosUsuarioEnc = $usuario->buscarPorToken($token);
+            if ($dadosUsuarioEnc) {
+                $usuario->atualizarSenhaToken($dadosUsuarioEnc['id'], password_hash($novaSenha, PASSWORD_DEFAULT));
+                $_SESSION['success'] = "Senha redefinida com sucesso!";
+                header("Location: ../view/login.php");
+                exit;
+            } else {
+                $_SESSION['error'] = "Token inválido ou expirado.";
+                header("Location: ../view/recuperar_senha.html");
+                header("Location: ../view/recuperar_senha.php");
+                exit;
+            }
+        }
+    // Fluxo: alterar senha no perfil (usuário logado)
+        elseif ($acao === 'redefinir_senha') {
+            $usuario_id     = $_POST['usuario_id'] ?? '';
+            $senha_atual    = $_POST['senha_atual'] ?? '';
+            $senha_nova     = $_POST['senha_nova'] ?? '';
+            $senha_confirma = $_POST['senha_confirma'] ?? '';
+
+            if ($senha_nova !== $senha_confirma) {
+                $_SESSION['error'] = "Nova senha e confirmação não conferem.";
+                header("Location: ../view/perfil.php");
+                exit;
+            }
+
+            $dadosUsuarioEnc = $usuario->obterPorId($usuario_id);
+
+            if (!$dadosUsuarioEnc) {
+                $_SESSION['error'] = "Usuário não encontrado.";
+                header("Location: ../view/perfil.php");
+                exit;
+            }
+
+            if (!password_verify($senha_atual, $dadosUsuarioEnc['senha'])) {
+                $_SESSION['error'] = "Senha atual incorreta.";
+                header("Location: ../view/perfil.php");
+                exit;
+            }
+
+            $hash = password_hash($senha_nova, PASSWORD_DEFAULT);
+            $usuario->atualizarSenhaPerfil($usuario_id, $hash);
+
+            $_SESSION['success'] = "Senha alterada com sucesso!";
+            header("Location: ../view/perfil.php");
+            exit;
+        }
+        /** Sair */
+        elseif ($acao === 'logout') {
+                    session_start();
+                    session_destroy();
+                    header("Location: ../view/login.php");
+                    exit;
+        } else {
+            throw new Exception("Ação inválida.");
+        }
+    } catch (Exception $e) {
+        $_SESSION['error'] = $e->getMessage();
+        header("Location: ../view/login.php");
+        exit;
+    }
+}
+// Se o usuário está logado, buscar seus dados
+if (isset($_SESSION['usuario_id'])) {
+    $dadosUsuario = $usuario->buscarPorId($_SESSION['usuario_id']);
+}
+
+// Listagem de usuários só deve aparecer para administradores
+if (!isset($_SESSION['usuario_id']) || $_SESSION['tipo'] !== 'administrador') {
+    $usuarios = []; // vazio para quem não é admin
+} else {
+    $usuarios = $usuario->listar();
+}
+?>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Meus Agendamentos — Aqui tem Terapia</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="site">
+    <header>
+      <div class="logo">Aqui tem Terapia!</div>
+      <nav>
+        <a class="cta" href="tela_inicial.html">Home</a>
+        <a class="cta" href="agendamento.html">Agendar</a>
+        <a class="cta" href="itens.html">Serviços</a>
+        <a class="cta" href="profissionais.html">Profissionais</a>
+        <a class="cta" href="pagamento.html">Pagamentos</a>      
+        <a class="cta" href="contato.html">Contato</a>
+        <button class="menu-toggle" onclick="toggleMenu()" aria-label="Abrir menu">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="#333" viewBox="0 0 16 16">
+            <path d="M2 4h12v2H2V4zm0 4h12v2H2V8zm0 4h12v2H2v-2z"/>
+          </svg>
+        </button>      </nav>
+    </header>
+
+    <main>
+      <section class="orders-container" aria-label="Lista de agendamentos">
+        <h1 class="page-title">Meus Agendamentos</h1>
+        <p class="lead">Acompanhe seus atendimentos marcados e histórico de consultas.</p>
+        
+        <article class="order-card" aria-labelledby="order-1">
+          <div class="order-header">
+            <h3 id="order-1">Psicoterapia Individual</h3>
+            <span class="order-status confirmed">Confirmado</span>
+          </div>
+          <div class="order-info">
+            <p><strong>Profissional:</strong> Dra. Maria Souza</p>
+            <p><strong>Data:</strong> 15 de Abril, 2026</p>
+            <p><strong>Horário:</strong> 14:00 - 15:00</p>
+            <p><strong>Local:</strong> Presencial</p>
+          </div>
+          <div class="order-actions">
+            <button class="btn-secondary">Remarcar</button>
+            <button class="btn-secondary">Cancelar</button>
+          </div>
+        </article>
+
+        <article class="order-card" aria-labelledby="order-2">
+          <div class="order-header">
+            <h3 id="order-2">Terapia Floral</h3>
+            <span class="order-status pending">Pendente</span>
+          </div>
+          <div class="order-info">
+            <p><strong>Profissional:</strong> Natália Pereira</p>
+            <p><strong>Data:</strong> 24 de Abril, 2026</p>
+            <p><strong>Horário:</strong> 10:00 - 10:30</p>
+            <p><strong>Local:</strong> Online</p>
+          </div>
+          <div class="order-actions">
+            <button class="btn-secondary">Remarcar</button>
+            <button class="btn-secondary">Cancelar</button>
+          </div>
+        </article>
+
+        <article class="order-card" aria-labelledby="order-3">
+          <div class="order-header">
+            <h3 id="order-3">Reiki</h3>
+            <span class="order-status completed">Realizado</span>
+          </div>
+          <div class="order-info">
+            <p><strong>Profissional:</strong> Dr. João Silva</p>
+            <p><strong>Data:</strong> 30 de Março, 2026</p>
+            <p><strong>Horário:</strong> 16:00 - 16:45</p>
+            <p><strong>Local:</strong> Presencial</p>
+          </div>
+          <div class="order-actions">
+            <button class="btn-secondary">Agendar novamente</button>
+            <button class="btn-secondary">Avaliar</button>
+          </div>
+        </article>
+
+      </section>
+    </main>
+
+    <footer>© 2025 Aqui tem Terapia! | Contato via WhatsApp</footer>
+  </div>
+</body>
+</html>

@@ -61,20 +61,7 @@ $total_usuarios_comuns = count(array_filter($usuarios, fn($u) => $u['tipo'] === 
 </head>
 <body class="gerenciar-usuarios">
   <div class="site">
-    <?php include 'sidebar.php'; ?>
-
-    <header>
-      <div class="logo">Aqui tem Terapia!</div>
-      <nav>
-        <a class="cta" href="tela_inicial.html">Início</a>
-        <a class="cta" href="perfil.php">Perfil</a>
-        <button class="menu-toggle" onclick="toggleMenu()" aria-label="Abrir menu">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="#333" viewBox="0 0 16 16">
-            <path d="M2 4h12v2H2V4zm0 4h12v2H2V8zm0 4h12v2H2v-2z"/>
-          </svg>
-        </button>
-      </nav>
-    </header>
+    <?php include 'header.php'; ?>
 
     <main class="container">
         <!-- ALERTAS -->

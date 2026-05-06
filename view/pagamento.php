@@ -4,7 +4,7 @@ require_once __DIR__ . '/../controller/conectarBD.php';
 require_once __DIR__ . '/../model/Pedido.php';
 
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.html");
+    header("Location: login.php");
     exit;
 }
 

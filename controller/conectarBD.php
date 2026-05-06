@@ -17,16 +17,14 @@ if (file_exists($caminhoEnv)) {
             $_ENV[$nome] = $valor;
         }
     }
-} else {
-    die("Erro: Arquivo .env não encontrado na raiz!");
 }
 
 // 2. Agora você usa as variáveis para a conexão
-$host = $_ENV['DB_HOST'];
-$db   = $_ENV['DB_NAME'];
-$user = $_ENV['DB_USER'];
-$pass = $_ENV['DB_PASS'];
-$key  = $_ENV['APP_KEY']; // Sua chave de criptografia aqui
+$host = getenv('DB_HOST') ?: ($_ENV['DB_HOST'] ?? '');
+$db   = getenv('DB_NAME') ?: ($_ENV['DB_NAME'] ?? '');
+$user = getenv('DB_USER') ?: ($_ENV['DB_USER'] ?? '');
+$pass = getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? '');
+$key  = getenv('APP_KEY') ?: ($_ENV['APP_KEY'] ?? '');
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);

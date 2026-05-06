@@ -1,15 +1,21 @@
 <?php
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 require_once __DIR__ . '/conectarBD.php';
 require_once __DIR__ . '/../model/Pedido.php';
 require_once __DIR__ . '/../model/Pagamento.php';
 require_once __DIR__ . '/../model/Agendamento.php';
+
+require __DIR__ . '/../vendor/autoload.php';
 
 // Recebe o ID da notificação enviado pelo Mercado Pago
 $id = $_GET['id'] ?? ($_POST['data']['id'] ?? null);
 $topic = $_GET['topic'] ?? ($_POST['type'] ?? null);
 
 if ($id && $topic === 'payment') {
-    $access_token = $_ENV['MP_ACCESS_TOKEN'];
+    $access_token = getenv('MP_ACCESS_TOKEN') ?: ($_ENV['MP_ACCESS_TOKEN'] ?? '');
     
     // Consulta os detalhes do pagamento na API do Mercado Pago
     $ch = curl_init("https://api.mercadopago.com/v1/payments/$id");
@@ -50,6 +56,64 @@ if ($id && $topic === 'payment') {
             $pedidoModel->atualizarStatus($pedido_id, 'pago');
             $pdo->prepare("UPDATE agendamento SET status = 'confirmado' WHERE pedido_id = ?")
                 ->execute([$pedido_id]);
+
+            // NOVO: Buscar e-mails e detalhes para envio de confirmação
+            $sqlInfo = "SELECT 
+                            a.data, a.horario, i.nome as servico_nome,
+                            u_cli.nome as cliente_nome, u_cli.email as cliente_email,
+                            u_ter.nome as terapeuta_nome, u_ter.email as terapeuta_email
+                        FROM agendamento a
+                        JOIN itens i ON a.itens_id = i.id
+                        JOIN usuario u_cli ON a.usuario_id = u_cli.id
+                        JOIN usuario u_ter ON a.terapeuta_id = u_ter.id
+                        WHERE a.pedido_id = ?";
+            
+            $stmtInfo = $pdo->prepare($sqlInfo);
+            $stmtInfo->execute([$pedido_id]);
+            $detalhesNotificacao = $stmtInfo->fetchAll(PDO::FETCH_ASSOC);
+
+            $mail = new PHPMailer(true);
+
+            foreach ($detalhesNotificacao as $info) {
+                try {
+                    // Configurações do Servidor SMTP
+                    $mail->isSMTP();
+                    $mail->Host       = getenv('SMTP_HOST');
+                    $mail->SMTPAuth   = true;
+                    $mail->Username   = getenv('SMTP_USER');
+                    $mail->Password   = getenv('SMTP_PASS');
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port       = getenv('SMTP_PORT');
+                    $mail->CharSet    = 'UTF-8';
+
+                    // Remetente
+                    $mail->setFrom(getenv('SMTP_FROM_EMAIL'), 'Aqui tem Terapia');
+
+                    // --- E-mail para o Cliente ---
+                    $mail->addAddress($info['cliente_email'], $info['cliente_nome']);
+                    $mail->isHTML(true);
+                    $mail->Subject = 'Confirmação de Agendamento — Aqui tem Terapia';
+                    
+                    $dataFmt = date('d/m/Y', strtotime($info['data']));
+                    $horaFmt = substr($info['horario'], 0, 5);
+                    
+                    $mail->Body = "<h1>Olá, {$info['cliente_nome']}!</h1>
+                                   <p>Seu pagamento foi aprovado e seu agendamento de <strong>{$info['servico_nome']}</strong> está confirmado.</p>
+                                   <p><strong>Data:</strong> $dataFmt<br><strong>Horário:</strong> $horaFmt<br><strong>Terapeuta:</strong> {$info['terapeuta_nome']}</p>";
+                    
+                    $mail->send();
+                    
+                    // --- E-mail para o Terapeuta ---
+                    $mail->clearAddresses(); // Limpa o destinatário anterior
+                    $mail->addAddress($info['terapeuta_email'], $info['terapeuta_nome']);
+                    $mail->Subject = 'Novo Agendamento Confirmado — Aqui tem Terapia';
+                    $mail->Body = "<h1>Olá, {$info['terapeuta_nome']}!</h1>
+                                   <p>Você tem um novo atendimento confirmado: <strong>{$info['servico_nome']}</strong> com o cliente <strong>{$info['cliente_nome']}</strong> para o dia $dataFmt às $horaFmt.</p>";
+                    $mail->send();
+                } catch (Exception $e) {
+                    error_log("Erro ao enviar e-mail: {$mail->ErrorInfo}");
+                }
+            }
         }
     }
 }

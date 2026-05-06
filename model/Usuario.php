@@ -129,18 +129,41 @@ class Usuario {
         return $_SESSION['tipo'] ?? null;
     }
 
-    // Obter usuário por ID
+    /**
+     * Obter usuário por ID (com dados descriptografados para uso na aplicação/perfil)
+     */
     public function obterPorId($id) {
         $stmt = $this->con->prepare("SELECT * FROM usuario WHERE id = ?");
         $stmt->execute([$id]);
         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($usuario) {
+            // Descriptografa dados sensíveis para exibição no Perfil
+            if (!empty($usuario['cpf'])) {
+                $usuario['cpf'] = $this->descriptografar($usuario['cpf']);
+            }
+            if (!empty($usuario['telefone'])) {
+                $usuario['telefone'] = $this->descriptografar($usuario['telefone']);
+            }
+        }
         return $usuario;
     }
 
-    //Editar usuário
+    /**
+     * Alias para obterPorId, utilizado no controlador gerenciar_usuarios.php
+     */
+    public function buscarPorId($id) {
+        return $this->obterPorId($id);
+    }
+
+    // Editar usuário
     public function editar($id, $nome, $telefone, $email) {
+        // Criptografa o telefone antes de salvar no banco para manter a consistência
+        $telefoneLimpo = preg_replace('/\D/', '', $telefone);
+        $telCripto = $this->criptografar($telefoneLimpo);
+
         $stmt = $this->con->prepare("UPDATE usuario SET nome = ?, telefone = ?, email = ? WHERE id = ?");
-        $resultado = $stmt->execute([$nome, $telefone, $email, $id]);
+        $resultado = $stmt->execute([$nome, $telCripto, $email, $id]);
         return $resultado;
     }
 

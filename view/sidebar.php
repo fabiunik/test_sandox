@@ -33,7 +33,7 @@ $tipo = isset($_SESSION['tipo']) ? trim(strtolower($_SESSION['tipo'])) : '';
                 <a href="../controller/gerenciar_itens.php" class="sidebar-link admin-link">🛠️ Meus Serviços</a>
                 <a href="disponibilidade.php" class="sidebar-link admin-link">⏰ Gerenciar Disponibilidade</a>
             <?php endif; ?> <div class="sidebar-divider"></div>
-            <a href="login.php" class="sidebar-link" style="color: #ff9999 !important;">🚪 Sair da Conta</a>
+            <a href="logout.php" class="sidebar-link" style="color: #ff9999 !important;">🚪 Sair da Conta</a>
 
         <?php else: ?> <a href="login.php" class="sidebar-link">🔐 Entrar</a>
         <?php endif; ?> </nav>

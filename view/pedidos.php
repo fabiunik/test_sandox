@@ -6,7 +6,7 @@ require_once __DIR__ . '/../model/Agendamento.php';
 require_once __DIR__ . '/../model/Item.php';
 
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.html");
+    header("Location: login.php");
     exit;
 }
 

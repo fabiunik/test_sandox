@@ -10,27 +10,12 @@ require_once __DIR__ . '/../controller/gerenciar_perfil_profissional.php';
 </head>
 <body class="gerenciar-perfil">
   <div class="site">
-    <header>
-      <div class="logo">Aqui tem Terapia!</div>
-      <nav>
-        <a class="cta" href="tela_inicial.html">Home</a>
-        <a class="cta" href="agendamento.html">Agendar</a>
-        <a class="cta" href="itens.html">Serviços</a>
-        <a class="cta" href="contato.html">Contato</a>
-        <button class="menu-toggle" onclick="toggleMenu()" aria-label="Abrir menu">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="#333" viewBox="0 0 16 16">
-            <path d="M2 4h12v2H2V4zm0 4h12v2H2V8zm0 4h12v2H2v-2z"/>
-          </svg>
-        </button>
-      </nav>
-    </header>
+    <?php include 'header.php'; ?>
 
-    <main>
-      <div class="container">
-      <?php if ($perfil): ?>
-        <div class="card">
+    <main class="services-wrapper">
+        <?php if ($perfil): ?>
           <div class="profile-header">
-            <div class="avatar-cont">
+            <div class="avatar-cont" style="width: 180px; height: 180px;">
               <img src="<?php echo htmlspecialchars($fotoUrl); ?>" alt="<?php echo htmlspecialchars($perfil['nome']); ?>">
             </div>
             <div>
@@ -42,8 +27,7 @@ require_once __DIR__ . '/../controller/gerenciar_perfil_profissional.php';
               <?php endif; ?>
             </div>
           </div>
-        </div>
-
+        
         <?php if ($mensagemPerfil): ?>
           <div class="alert alert-success"><?php echo htmlspecialchars($mensagemPerfil); ?></div>
         <?php endif; ?>
@@ -53,16 +37,13 @@ require_once __DIR__ . '/../controller/gerenciar_perfil_profissional.php';
         <?php endif; ?>
 
         <?php if ($modoEdicao): ?>
-          <div class="card">
+          <div class="profile-section">
             <form method="post" enctype="multipart/form-data" class="gerenciar-perfil">
               <input type="hidden" name="acao" value="salvar_perfil">
 
               <div class="form-group">
                 <label for="foto">Foto de perfil</label>
-                <div class="avatar-cont" style="width: 180px; height: 180px; margin-bottom: 15px;">
-                  <img src="<?php echo htmlspecialchars($fotoUrl); ?>" alt="Foto de perfil">
-                </div>
-                <input type="file" name="foto" id="foto" accept="image/*">
+                <input type="file" name="foto" id="foto" accept="image/*" style="padding: 10px; border: 1px dashed #ccc;">
               </div>
 
               <div class="form-group">
@@ -88,32 +69,29 @@ require_once __DIR__ . '/../controller/gerenciar_perfil_profissional.php';
             </form>
           </div>
         <?php else: ?>
-          <div class="card">
-            <div class="profile-header">
-              <div class="avatar-cont">
-                <img src="<?php echo htmlspecialchars($fotoUrl); ?>" alt="<?php echo htmlspecialchars($perfil['nome']); ?>">
-              </div>
-              <div>
-                <h2>Especialidades</h2>
-                <p><?php echo nl2br(htmlspecialchars($perfil['especialidades'] ?? 'Não informado')); ?></p>
-                <h2>Experiência</h2>
-                <p><?php echo nl2br(htmlspecialchars($perfil['experiencia'] ?? 'Não informado')); ?></p>
-                <h2>Descrição</h2>
-                <p><?php echo nl2br(htmlspecialchars($perfil['descricao'] ?? 'Não informado')); ?></p>
-              </div>
-            </div>
+          <div class="profile-section" style="margin-top: 30px; border-top: 1px solid #eee; pt: 20px;">
+            <h2>Especialidades</h2>
+            <p style="margin-bottom: 25px; font-size: 1.1rem;"><?php echo nl2br(htmlspecialchars($perfil['especialidades'] ?? 'Não informado')); ?></p>
+            
+            <h2>Experiência</h2>
+            <p style="margin-bottom: 25px; font-size: 1.1rem;"><?php echo nl2br(htmlspecialchars($perfil['experiencia'] ?? 'Não informado')); ?></p>
+            
+            <h2>Descrição</h2>
+            <p style="font-size: 1.1rem; line-height: 1.6;"><?php echo nl2br(htmlspecialchars($perfil['descricao'] ?? 'Não informado')); ?></p>
           </div>
         <?php endif; ?>
 
-        <a class="cta" href="profissionais.php">← Voltar para lista de profissionais</a>
-      <?php else: ?>
-        <div class="card">
-          <p>Profissional não encontrado.</p>
-          <a class="cta" href="profissionais.php">← Voltar para lista de profissionais</a>
+        <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">
+            <a class="cta" href="profissionais.php">← Voltar para lista de profissionais</a>
         </div>
-      <?php endif; ?>
-      </div>
+      <?php else: ?>
+        <div class="alert alert-error">
+          <p>Profissional não encontrado.</p>
+        </div>
+        <a class="cta" href="profissionais.php" style="margin-top: 20px; display: inline-block;">← Voltar</a>
+        <?php endif; ?>
     </main>
+    <footer style="margin-top: 40px;">© 2025 Aqui tem Terapia! | Contato via WhatsApp</footer>
   </div>
 </body>
 </html>

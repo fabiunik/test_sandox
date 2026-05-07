@@ -36,7 +36,7 @@
                       <p><?php echo htmlspecialchars($row['descricao']); ?></p>
                       <p><strong>Valor:</strong> R$ <?php echo number_format($row['valor'], 2, ',', '.'); ?></p>
                       <p><em>Terapeuta:</em> <?php echo htmlspecialchars($row['terapeuta']); ?></p>
-                      <a id="agendar" class="cta" href="agendamento.php?item_id=<?php echo (isset($row['id']) ? $row['id'] : ''); ?>&terapeuta_id=<?php echo (isset($row['terapeuta_id']) ? $row['terapeuta_id'] : ''); ?>">
+                      <a class="cta" href="agendamento.php?item_id=<?php echo (isset($row['id']) ? $row['id'] : ''); ?>&terapeuta_id=<?php echo (isset($row['terapeuta_id']) ? $row['terapeuta_id'] : ''); ?>">
                       Agendar</a>
                   </article>                 
             <?php endforeach;
@@ -46,10 +46,8 @@
           </div>
         </div>
       </section>
-
     </main>
-  </div>
-
     <footer>© 2025 Aqui tem Terapia! | Contato via WhatsApp</footer>
+  </div>
 </body>
 </html>

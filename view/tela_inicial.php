@@ -21,7 +21,7 @@ if (session_status() === PHP_SESSION_NONE) {
         <p class="lead">
           Encontre profissionais, marque atendimentos e acompanhe seu progresso.
         </p>
-        <a id="agendar" class="cta" href="agendamento.php">AGENDAR CONSULTA</a>
+        <a class="cta" href="agendamento.php">AGENDAR CONSULTA</a>
       </section>
 
       <aside class="visual" >

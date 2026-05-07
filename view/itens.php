@@ -1,5 +1,8 @@
+<?php
+session_start();
+require_once '../controller/conectarBD.php';
+?>
 <!DOCTYPE html>
-<?php require_once '../controller/conectarBD.php'; ?>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />

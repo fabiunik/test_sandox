@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once __DIR__ . '/../controller/conectarBD.php';
 require_once __DIR__ . '/../model/Usuario.php';
 

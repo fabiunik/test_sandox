@@ -17,6 +17,7 @@
       <a class="cta" href="gerenciar_itens.php">Serviços</a>
     </nav>
   </header>
+  <?php include 'header.php'; ?>
 
   <div class="cards">
     <!-- CONFIGURAÇÕES GERAIS -->

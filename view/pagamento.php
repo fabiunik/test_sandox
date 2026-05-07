@@ -133,7 +133,10 @@ if ($preference_id) {
     </div>
 
     <script>
-        const mp = new MercadoPago('<?php echo getenv('MP_PUBLIC_KEY'); ?>', {
+        const publicKey = '<?php echo getenv('MP_PUBLIC_KEY'); ?>';
+        if (!publicKey) console.error("Erro: MP_PUBLIC_KEY não encontrada.");
+
+        const mp = new MercadoPago(publicKey, {
             locale: 'pt-BR'
         });
 

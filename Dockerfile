@@ -11,6 +11,10 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo_mysql gd mbstring
 
+# Garantir que apenas o MPM prefork esteja carregado (evita erro AH00534)
+RUN a2dismod mpm_event || true
+RUN a2enmod mpm_prefork
+
 # Habilitar mod_rewrite do Apache (útil para URLs amigáveis futuramente)
 RUN a2enmod rewrite
 

@@ -20,14 +20,15 @@ if (file_exists($caminhoEnv)) {
 }
 
 // 2. Agora você usa as variáveis para a conexão
-$host = getenv('DB_HOST') ?: ($_ENV['DB_HOST'] ?? '');
-$db   = getenv('DB_NAME') ?: ($_ENV['DB_NAME'] ?? '');
-$user = getenv('DB_USER') ?: ($_ENV['DB_USER'] ?? '');
-$pass = getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? '');
+$host = getenv('MYSQLHOST') ?: getenv('DB_HOST') ?: ($_ENV['DB_HOST'] ?? '');
+$db   = getenv('MYSQLDATABASE') ?: getenv('DB_NAME') ?: ($_ENV['DB_NAME'] ?? '');
+$user = getenv('MYSQLUSER') ?: getenv('DB_USER') ?: ($_ENV['DB_USER'] ?? '');
+$pass = getenv('MYSQLPASSWORD') ?: getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? '');
+$port = getenv('MYSQLPORT') ?: getenv('DB_PORT') ?: ($_ENV['DB_PORT'] ?? '3306');
 $key  = getenv('APP_KEY') ?: ($_ENV['APP_KEY'] ?? '');
 
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
+    $pdo = new PDO("mysql:host=$host;port=$port;dbname=$db;charset=utf8", $user, $pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die("Erro na conexão: " . $e->getMessage());

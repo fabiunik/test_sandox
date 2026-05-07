@@ -2,8 +2,12 @@
 require_once __DIR__ . '/../controller/conectarBD.php';
 require_once __DIR__ . '/../model/Usuario.php';
 
-$usuarioModel = new Usuario($pdo);
-$terapeutas = $usuarioModel->listarTerapeutas();
+try {
+    $usuarioModel = new Usuario($pdo);
+    $terapeutas = $usuarioModel->listarTerapeutas();
+} catch (Exception $e) {
+    $erro_db = $e->getMessage();
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -21,6 +25,10 @@ $terapeutas = $usuarioModel->listarTerapeutas();
       <section class="services-wrapper" aria-label="Lista de profissionais">
         <h1 class="page-title">Nossos profissionais</h1>
         <p class="lead">Equipe multidisciplinar qualificada — conheça nossos especialistas e agende seu atendimento.</p>
+
+        <?php if (isset($erro_db)): ?>
+            <div class="alert alert-error">Erro ao carregar dados: <?php echo htmlspecialchars($erro_db); ?></div>
+        <?php endif; ?>
 
         <div class="profissionais-cards">
           <?php

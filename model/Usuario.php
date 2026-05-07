@@ -74,7 +74,7 @@ class Usuario {
         return base64_encode($iv . $tag . $valorCripto);
     }
     
-        private function descriptografar($valorBanco) {
+    private function descriptografar($valorBanco): string {
         $chave = getenv('APP_KEY');
         $decodificado = base64_decode($valorBanco);
 
@@ -83,7 +83,9 @@ class Usuario {
         $tag = substr($decodificado, 12, 16);
         $dadosCripto = substr($decodificado, 28);
 
-        return openssl_decrypt($dadosCripto, 'aes-256-gcm', $chave, 0, $iv, $tag);
+        $resultado = openssl_decrypt($dadosCripto, 'aes-256-gcm', $chave, 0, $iv, $tag);
+        
+        return $resultado ?: ''; // Retorna string vazia se falhar (ex: chave incompatível)
     }
 
     // Login
@@ -132,7 +134,7 @@ class Usuario {
     /**
      * Obter usuário por ID (com dados descriptografados para uso na aplicação/perfil)
      */
-    public function obterPorId($id) {
+    public function obterPorId($id): ?array {
         $stmt = $this->con->prepare("SELECT * FROM usuario WHERE id = ?");
         $stmt->execute([$id]);
         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);

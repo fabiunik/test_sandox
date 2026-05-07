@@ -10,7 +10,6 @@
 <body>
   <div class="site">
     <?php include 'header.php'; ?>
-    </div>
 
     <main>
 
@@ -49,6 +48,7 @@
       </section>
 
     </main>
+  </div>
 
     <footer>© 2025 Aqui tem Terapia! | Contato via WhatsApp</footer>
   </div>

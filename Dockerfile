@@ -1,6 +1,6 @@
 FROM php:8.2-apache
 
-# Instalar extensões necessárias do PHP
+# Instalar dependências do sistema e extensões PHP
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -8,23 +8,28 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     libonig-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo_mysql gd mbstring
 
-# Garantir que apenas o MPM prefork esteja carregado (evita erro AH00534)
-RUN a2dismod mpm_event || true
-RUN a2enmod mpm_prefork
+# CORREÇÃO CRÍTICA: Desativar MPMs conflitantes (Erro AH00534) e configurar porta dinâmica do Railway
+RUN a2dismod mpm_event mpm_worker || true \
+    && a2enmod mpm_prefork \
+    && sed -i 's/Listen 80/Listen ${PORT}/g' /etc/apache2/ports.conf \
+    && sed -i 's/<VirtualHost \*:80>/<VirtualHost \*:${PORT}>/g' /etc/apache2/sites-available/000-default.conf
 
-# Habilitar mod_rewrite do Apache (útil para URLs amigáveis futuramente)
+# Habilitar mod_rewrite
 RUN a2enmod rewrite
 
 # Copiar os arquivos do projeto para o container
 COPY . /var/www/html/
 
-# Dar permissões para a pasta de uploads
-RUN mkdir -p /var/www/html/uploads && chmod -R 777 /var/www/html/uploads
+# Configurar permissões seguras
+RUN chown -R www-data:www-data /var/www/html \
+    && mkdir -p /var/www/html/uploads \
+    && chmod -R 775 /var/www/html/uploads
 
-# Expor a porta 80
 EXPOSE 80
 
 CMD ["apache2-foreground"]

@@ -19,6 +19,10 @@ if (!$infoPedido || $infoPedido['usuario_id'] != $_SESSION['usuario_id']) {
 
 // --- INTEGRAÇÃO MERCADO PAGO ---
 $access_token = getenv('MP_ACCESS_TOKEN');
+if (!$access_token) {
+    die("Erro: Chave de acesso (Access Token) do Mercado Pago não configurada nas variáveis de ambiente.");
+}
+
 $url = "https://api.mercadopago.com/checkout/preferences";
 
 // Preparar os itens para o Mercado Pago
@@ -35,8 +39,16 @@ foreach ($detalhes as $item) {
 
 // Dados da preferência
 // Detecta a URL base dinamicamente para funcionar tanto em localhost quanto no servidor de teste
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
-$baseUrl = $protocol . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']);
+$protocol = 'http://';
+// Verifica se é HTTPS nativo ou se está atrás de um proxy SSL (como no Railway)
+if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || 
+    (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')) {
+    $protocol = 'https://';
+}
+
+// Normaliza o caminho: converte backslashes do Windows em / e remove a barra final para evitar URLs malformadas
+$currentPath = str_replace('\\', '/', dirname($_SERVER['REQUEST_URI']));
+$baseUrl = $protocol . $_SERVER['HTTP_HOST'] . rtrim($currentPath, '/');
 
 $data = [
     "items" => $items,

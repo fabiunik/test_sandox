@@ -18,7 +18,7 @@ if (!$infoPedido || $infoPedido['usuario_id'] != $_SESSION['usuario_id']) {
 }
 
 // --- INTEGRAÇÃO MERCADO PAGO ---
-$access_token = $_ENV['MP_ACCESS_TOKEN'];
+$access_token = getenv('MP_ACCESS_TOKEN');
 $url = "https://api.mercadopago.com/checkout/preferences";
 
 // Preparar os itens para o Mercado Pago
@@ -61,6 +61,9 @@ curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
 $response = curl_exec($ch);
 $result = json_decode($response, true);
 
+// Log de erro completo da resposta da API
+error_log('Resposta Mercado Pago: ' . $response);
+
 // Log de erro para depuração se a API falhar
 if (curl_errno($ch)) {
     error_log('Erro cURL Mercado Pago: ' . curl_error($ch));
@@ -95,12 +98,21 @@ if ($preference_id) {
                 <h1>Finalizar Pagamento</h1>
                 <p class="lead">Pedido #<?php echo $pedido_id; ?></p>
                 
-                <div class="card" style="margin-bottom: 20px; padding: 30px; background: white;">
-                    <h2 style="font-size: 2rem; color: var(--cta-bg);">
-                        R$ <?php echo number_format($infoPedido['valor_total'], 2, ',', '.'); ?>
-                    </h2>
-                    <p>Você será redirecionado para o ambiente seguro do Mercado Pago.</p>
-                </div>
+                <?php if ($preference_id): ?>
+                    <div class="card" style="margin-bottom: 20px; padding: 30px; background: white;">
+                        <h2 style="font-size: 2rem; color: var(--cta-bg);">
+                            R$ <?php echo number_format($infoPedido['valor_total'], 2, ',', '.'); ?>
+                        </h2>
+                        <p>Você será redirecionado para o ambiente seguro do Mercado Pago.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-error">
+                        <p><strong>Erro ao gerar pagamento:</strong></p>
+                        <p><?php echo htmlspecialchars($result['message'] ?? 'Erro de comunicação com o Mercado Pago.'); ?></p>
+                        <p>Verifique se as chaves MP_ACCESS_TOKEN e MP_PUBLIC_KEY estão configuradas corretamente no Railway.</p>
+                        <a href="pedidos.php" class="btn-secondary" style="margin-top: 15px; display: inline-block;">Voltar</a>
+                    </div>
+                <?php endif; ?>
 
                 <!-- Container do Botão do Mercado Pago -->
                 <div id="wallet_container"></div>
@@ -109,21 +121,23 @@ if ($preference_id) {
     </div>
 
     <script>
-        const mp = new MercadoPago('<?php echo $_ENV['MP_PUBLIC_KEY']; ?>', {
+        const mp = new MercadoPago('<?php echo getenv('MP_PUBLIC_KEY'); ?>', {
             locale: 'pt-BR'
         });
 
-        mp.bricks().create("wallet", "wallet_container", {
-            initialization: {
-                preferenceId: '<?php echo $preference_id; ?>',
-                redirectMode: 'modal'
-            },
-            customization: {
-                texts: {
-                    valueProp: 'smart_option',
+        <?php if ($preference_id): ?>
+            mp.bricks().create("wallet", "wallet_container", {
+                initialization: {
+                    preferenceId: '<?php echo $preference_id; ?>',
+                    redirectMode: 'modal'
                 },
-            },
-        });
+                customization: {
+                    texts: {
+                        valueProp: 'smart_option',
+                    },
+                },
+            });
+        <?php endif; ?>
     </script>
 </body>
 </html>

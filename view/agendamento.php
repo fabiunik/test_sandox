@@ -29,10 +29,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = $_POST['data'] ?? '';
         $horario = $_POST['horario'] ?? '';
         $duracao = 0;
+        $preco = 0;
 
         if ($item_id > 0) {
             $item = $itemModel->buscarPorId($item_id);
             $duracao = intval($item['duracao'] ?? 0);
+            $preco = floatval($item['valor'] ?? 0);
         }
 
         if ($duracao <= 0) {
@@ -42,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             // No futuro, se quiser 'carrinho', você verificaria se já existe um pedido aberto na sessão
             // Por enquanto, criamos o agendamento e o pedidos.php criará o Pedido 'guarda-chuva'
-            $id = $agendamentoModel->criar($usuario_id, $terapeuta_id, $item_id, $data, $horario, $duracao);
+            $id = $agendamentoModel->criar($usuario_id, $terapeuta_id, $item_id, $data, $horario, $duracao, $preco);
             
             header("Location: pedidos.php?agendamento_id=" . $id);
             exit;

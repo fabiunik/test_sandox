@@ -7,16 +7,16 @@ class Agendamento {
         $this->con = $con;
     }
 
-    public function criar($usuario_id, $terapeuta_id, $item_id, $data, $horario, $duracao, $observacoes = null, $status = 'pendente', $pedido_id = null) {
+    public function criar($usuario_id, $terapeuta_id, $item_id, $data, $horario, $duracao, $preco, $observacoes = null, $status = 'pendente', $pedido_id = null) {
         // Verificar se o horário está disponível
         if (!$this->verificarDisponibilidade($terapeuta_id, $data, $horario, $duracao)) {
             throw new Exception("Horário não disponível.");
         }
 
         $stmt = $this->con->prepare(
-            "INSERT INTO agendamento (usuario_id, terapeuta_id, itens_id, data, horario, duracao, observacoes, status, pedido_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO agendamento (usuario_id, terapeuta_id, itens_id, data, horario, duracao, preco, observacoes, status, pedido_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
-        $stmt->execute([$usuario_id, $terapeuta_id, $item_id, $data, $horario, $duracao, $observacoes, $status, $pedido_id]);
+        $stmt->execute([$usuario_id, $terapeuta_id, $item_id, $data, $horario, $duracao, $preco, $observacoes, $status, $pedido_id]);
         return $this->con->lastInsertId();
     }
 

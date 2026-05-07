@@ -9,14 +9,6 @@
 <body>
 
 <div class="site">
-  <header>
-    <div class="logo">Aqui tem Terapia!</div>
-    <nav>
-      <a class="cta" href="tela_inicial.html">Home</a>
-      <a class="cta" href="perfil_profissional.php">Perfil</a>
-      <a class="cta" href="gerenciar_itens.php">Serviços</a>
-    </nav>
-  </header>
   <?php include 'header.php'; ?>
 
   <div class="cards">

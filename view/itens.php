@@ -51,6 +51,5 @@
   </div>
 
     <footer>© 2025 Aqui tem Terapia! | Contato via WhatsApp</footer>
-  </div>
 </body>
 </html>

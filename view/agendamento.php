@@ -181,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label for="item_id">Qual é o serviço desejado?</label>
               <select id="item_id" name="item_id" required onchange="carregarHorarios()">
                 <option value="">-- escolha --</option>
-                <?php foreach ($itens as $item): ?>>
+                <?php foreach ($itens as $item): ?>
                   <option value="<?php echo $item['id']; ?>"><?php echo htmlspecialchars($item['nome']); ?> - R$ <?php echo number_format($item['valor'], 2, ',', '.'); ?></option>
                 <?php endforeach; ?>
               </select>

@@ -10,13 +10,21 @@ require_once __DIR__ . '/../model/Agendamento.php';
 
 require __DIR__ . '/../vendor/autoload.php';
 
+// No Railway, o Mercado Pago envia um JSON. O PHP não popula $_POST com JSON automaticamente.
+$json_input = file_get_contents('php://input');
+$data_input = json_decode($json_input, true);
+
 // Recebe o ID da notificação enviado pelo Mercado Pago
-$id = $_GET['id'] ?? ($_POST['data']['id'] ?? null);
-$topic = $_GET['topic'] ?? ($_POST['type'] ?? null);
+$id = $_GET['id'] ?? ($data_input['data']['id'] ?? null);
+$topic = $_GET['topic'] ?? ($data_input['type'] ?? null);
+
+error_log("Notificação recebida - ID: $id - Tópico: $topic");
 
 if ($id && $topic === 'payment') {
     $access_token = getenv('MP_ACCESS_TOKEN') ?: ($_ENV['MP_ACCESS_TOKEN'] ?? '');
     
+    error_log("Consultando detalhes do pagamento $id no Mercado Pago...");
+
     // Consulta os detalhes do pagamento na API do Mercado Pago
     $ch = curl_init("https://api.mercadopago.com/v1/payments/$id");
     curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer $access_token"]);
@@ -34,6 +42,8 @@ if ($id && $topic === 'payment') {
         $pedido_id = intval($payment_info['external_reference']);
         $status_mp = $payment_info['status']; // 'approved', 'pending', etc.
         
+        error_log("Pagamento $id para o Pedido #$pedido_id tem status: $status_mp");
+
         $pedidoModel = new Pedido($pdo);
         $pagamentoModel = new Pagamento($pdo);
         $agendamentoModel = new Agendamento($pdo);
@@ -54,6 +64,7 @@ if ($id && $topic === 'payment') {
         // 2. Se aprovado, atualiza o pedido e os agendamentos vinculados
         if ($status_mp === 'approved') {
             $pedidoModel->atualizarStatus($pedido_id, 'pago');
+            error_log("Status do Pedido #$pedido_id atualizado para 'pago' no banco de dados.");
             $pdo->prepare("UPDATE agendamento SET status = 'confirmado' WHERE pedido_id = ?")
                 ->execute([$pedido_id]);
 

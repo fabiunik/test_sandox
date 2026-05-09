@@ -19,8 +19,18 @@ if (!$infoPedido || $infoPedido['usuario_id'] != $_SESSION['usuario_id']) {
 
 // --- INTEGRAÇÃO MERCADO PAGO ---
 $access_token = getenv('MP_ACCESS_TOKEN');
-if (!$access_token) {
+$public_key = getenv('MP_PUBLIC_KEY');
+
+if (!$access_token || !$public_key) {
     die("Erro: Chave de acesso (Access Token) do Mercado Pago não configurada nas variáveis de ambiente.");
+}
+
+// Validação de consistência (Ambas devem ser TEST- ou ambas APP_USR-)
+$isTestToken = strpos($access_token, 'TEST-') === 0;
+$isTestKey = strpos($public_key, 'TEST-') === 0;
+
+if ($isTestToken !== $isTestKey) {
+    die("Erro de Configuração: Você está misturando credenciais de Teste e Produção. Verifique seu arquivo .env");
 }
 
 $url = "https://api.mercadopago.com/checkout/preferences";
@@ -50,13 +60,21 @@ if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
 $currentPath = str_replace('\\', '/', dirname($_SERVER['REQUEST_URI']));
 $baseUrl = $protocol . $_SERVER['HTTP_HOST'] . rtrim($currentPath, '/');
 
+// No Sandbox, o uso de um e-mail de teste evita conflitos com contas reais.
+// Se o token for de teste, usamos um e-mail fictício padrão do Mercado Pago.
+$email_pagador = $isTestToken ? "test_user_1303254949@testuser.com" : $_SESSION['email'];
+
 $data = [
     "items" => $items,
+    "payer" => [
+        "email" => $email_pagador
+    ],
     "back_urls" => [
         "success" => $baseUrl . "/sucesso.php",
         "failure" => $baseUrl . "/pedidos.php",
         "pending" => $baseUrl . "/pedidos.php"
     ],
+    "notification_url" => str_replace('/view', '/controller', $baseUrl) . "/notificacao_mp.php",
     "auto_return" => "approved",
     "external_reference" => (string)$pedido_id
 ];
@@ -133,7 +151,7 @@ if ($preference_id) {
     </div>
 
     <script>
-        const publicKey = '<?php echo getenv('MP_PUBLIC_KEY'); ?>';
+        const publicKey = '<?php echo $public_key; ?>';
         if (!publicKey) console.error("Erro: MP_PUBLIC_KEY não encontrada.");
 
         const mp = new MercadoPago(publicKey, {

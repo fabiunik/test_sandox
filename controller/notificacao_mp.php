@@ -10,13 +10,18 @@ require_once __DIR__ . '/../model/Agendamento.php';
 
 require __DIR__ . '/../vendor/autoload.php';
 
-// No Railway, o Mercado Pago envia um JSON. O PHP não popula $_POST com JSON automaticamente.
+// Captura a notificação tanto via URL (IPN) quanto via Body (Webhooks JSON)
 $json_input = file_get_contents('php://input');
 $data_input = json_decode($json_input, true);
 
+error_log("Payload recebido do MP: " . $json_input);
+
 // Recebe o ID da notificação enviado pelo Mercado Pago
 $id = $_GET['id'] ?? ($data_input['data']['id'] ?? null);
-$topic = $_GET['topic'] ?? ($data_input['type'] ?? null);
+$topic = $_GET['topic'] ?? ($data_input['type'] ?? ($data_input['action'] ?? null));
+
+// Em alguns casos de Webhook, o tópico vem como 'payment.created' ou similar
+if (strpos($topic, 'payment') !== false) $topic = 'payment';
 
 error_log("Notificação recebida - ID: $id - Tópico: $topic");
 
@@ -42,24 +47,25 @@ if ($id && $topic === 'payment') {
         $pedido_id = intval($payment_info['external_reference']);
         $status_mp = $payment_info['status']; // 'approved', 'pending', etc.
         
-        error_log("Pagamento $id para o Pedido #$pedido_id tem status: $status_mp");
+        error_log("Processando Pagamento $id para o Pedido #$pedido_id. Status: $status_mp");
 
         $pedidoModel = new Pedido($pdo);
         $pagamentoModel = new Pagamento($pdo);
         $agendamentoModel = new Agendamento($pdo);
 
-        // Tradução de status
-        $novo_status_pedido = ($status_mp === 'approved') ? 'pago' : 'pendente';
-        $novo_status_agendamento = ($status_mp === 'approved') ? 'confirmado' : 'pendente';
-
-        // 1. Registra ou atualiza a transação na tabela pagamento
-        $pagamentoModel->registrarTransacao(
-            $pedido_id, 
-            $id, 
-            $payment_info['payment_method_id'], 
-            $payment_info['transaction_amount'], 
-            $status_mp
-        );
+        // Verifica se já registramos esse pagamento para evitar erro de duplicidade
+        $pagamentoExistente = $pagamentoModel->buscarPorTransacaoId($id);
+        if (!$pagamentoExistente) {
+            $pagamentoModel->registrarTransacao(
+                $pedido_id, 
+                $id, 
+                $payment_info['payment_method_id'], 
+                $payment_info['transaction_amount'], 
+                $status_mp
+            );
+        } else {
+            $pagamentoModel->atualizarStatus($pagamentoExistente['id'], $status_mp);
+        }
 
         // 2. Se aprovado, atualiza o pedido e os agendamentos vinculados
         if ($status_mp === 'approved') {

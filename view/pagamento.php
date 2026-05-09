@@ -60,6 +60,9 @@ if ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
 $currentPath = str_replace('\\', '/', dirname($_SERVER['REQUEST_URI']));
 $baseUrl = $protocol . $_SERVER['HTTP_HOST'] . rtrim($currentPath, '/');
 
+// Define a URL de notificação de forma absoluta baseada no HOST
+$notificationUrl = $protocol . $_SERVER['HTTP_HOST'] . str_replace('/view', '/controller', $currentPath) . "/notificacao_mp.php";
+
 // No Sandbox, o uso de um e-mail de teste evita conflitos com contas reais.
 // Se o token for de teste, usamos um e-mail fictício padrão do Mercado Pago.
 $email_pagador = $isTestToken ? "test_user_1303254949@testuser.com" : $_SESSION['email'];
@@ -74,7 +77,7 @@ $data = [
         "failure" => $baseUrl . "/pedidos.php",
         "pending" => $baseUrl . "/pedidos.php"
     ],
-    "notification_url" => str_replace('/view', '/controller', $baseUrl) . "/notificacao_mp.php",
+    "notification_url" => $notificationUrl,
     "auto_return" => "approved",
     "external_reference" => (string)$pedido_id
 ];

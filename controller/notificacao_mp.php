@@ -14,14 +14,12 @@ require __DIR__ . '/../vendor/autoload.php';
 $json_input = file_get_contents('php://input');
 $data_input = json_decode($json_input, true);
 
-error_log("Payload recebido do MP: " . $json_input);
-
 // Recebe o ID da notificação enviado pelo Mercado Pago
 $id = $_GET['id'] ?? ($_GET['data_id'] ?? ($data_input['data']['id'] ?? ($data_input['id'] ?? null)));
-$topic = $_GET['topic'] ?? ($_GET['type'] ?? ($data_input['type'] ?? ($data_input['action'] ?? null)));
+$topic = $_GET['topic'] ?? ($_GET['type'] ?? ($data_input['type'] ?? ($data_input['action'] ?? ($data_input['topic'] ?? null))));
 
 // Em alguns casos de Webhook, o tópico vem como 'payment.created' ou similar
-if ($topic && strpos($topic, 'payment') !== false) $topic = 'payment';
+if ($topic && (strpos($topic, 'payment') !== false || strpos($topic, 'pay') !== false)) $topic = 'payment';
 
 error_log("Notificação recebida - ID: $id - Tópico: $topic");
 
@@ -34,6 +32,7 @@ if ($id && $topic === 'payment') {
     $ch = curl_init("https://api.mercadopago.com/v1/payments/$id");
     curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer $access_token"]);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'AquiTemTerapia/1.0'); // Identificação opcional para evitar bloqueios
     $response = curl_exec($ch);
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 

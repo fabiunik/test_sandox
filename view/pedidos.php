@@ -41,11 +41,8 @@ try {
             $pedidosParaExibir[] = $p;
         }
     } else {
-        // Fallback: Se não veio ID, listamos todos os pendentes do usuário logado
-        $todos = $pedidoModel->listarPorUsuario($_SESSION['usuario_id']);
-        foreach ($todos as $p) {
-            if ($p['status'] === 'pendente') $pedidosParaExibir[] = $p;
-        }
+        // Fallback: Se não veio ID, listamos todos os pedidos do usuário logado para conferência
+        $pedidosParaExibir = $pedidoModel->listarPorUsuario($_SESSION['usuario_id']);
     }
 
     if (empty($pedidosParaExibir)) {

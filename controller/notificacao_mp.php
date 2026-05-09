@@ -17,11 +17,11 @@ $data_input = json_decode($json_input, true);
 error_log("Payload recebido do MP: " . $json_input);
 
 // Recebe o ID da notificação enviado pelo Mercado Pago
-$id = $_GET['id'] ?? ($_GET['data_id'] ?? ($data_input['data']['id'] ?? null)); // Adicionado $_GET['data_id'] para notificações com 'data.id' na query string
-$topic = $_GET['topic'] ?? ($_GET['type'] ?? ($data_input['type'] ?? ($data_input['action'] ?? null))); // Adicionado $_GET['type'] para notificações com 'type' na query string
+$id = $_GET['id'] ?? ($_GET['data_id'] ?? ($data_input['data']['id'] ?? ($data_input['id'] ?? null)));
+$topic = $_GET['topic'] ?? ($_GET['type'] ?? ($data_input['type'] ?? ($data_input['action'] ?? null)));
 
 // Em alguns casos de Webhook, o tópico vem como 'payment.created' ou similar
-if (strpos($topic, 'payment') !== false) $topic = 'payment';
+if ($topic && strpos($topic, 'payment') !== false) $topic = 'payment';
 
 error_log("Notificação recebida - ID: $id - Tópico: $topic");
 
@@ -35,10 +35,21 @@ if ($id && $topic === 'payment') {
     curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer $access_token"]);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     $response = curl_exec($ch);
-    $payment_info = json_decode($response, true);
-    
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
     if (curl_errno($ch)) {
         error_log("Erro na notificação MP: " . curl_error($ch));
+    }
+
+    if ($http_code !== 200) {
+        error_log("Erro API Mercado Pago (HTTP $http_code): " . $response);
+    }
+
+    $payment_info = json_decode($response, true);
+    if (!$payment_info || !isset($payment_info['status'])) {
+        error_log("Dados de pagamento inválidos ou status ausente na resposta da API.");
+        http_response_code(200); // Retorna 200 para o MP parar de tentar, mas registra o erro
+        exit;
     }
     
     curl_close($ch);
@@ -91,10 +102,16 @@ if ($id && $topic === 'payment') {
 
             $mail = new PHPMailer(true);
 
+            $smtp_host = getenv('SMTP_HOST');
+            if (!$smtp_host) {
+                error_log("Aviso: Variáveis SMTP não configuradas. Pulando envio de e-mail.");
+                http_response_code(200);
+                exit;
+            }
+
             foreach ($detalhesNotificacao as $info) {
                 try {
                     // Configurações do Servidor SMTP
-                    $mail->isSMTP();
                     $mail->Host       = getenv('SMTP_HOST');
                     $mail->SMTPAuth   = true;
                     $mail->Username   = getenv('SMTP_USER');
@@ -129,6 +146,7 @@ if ($id && $topic === 'payment') {
                     $mail->send();
                 } catch (Exception $e) {
                     error_log("Erro ao enviar e-mail: {$mail->ErrorInfo}");
+                    // Continuamos para o próximo item, se houver
                 }
             }
         }

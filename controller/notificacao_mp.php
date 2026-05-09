@@ -17,8 +17,8 @@ $data_input = json_decode($json_input, true);
 error_log("Payload recebido do MP: " . $json_input);
 
 // Recebe o ID da notificação enviado pelo Mercado Pago
-$id = $_GET['id'] ?? ($data_input['data']['id'] ?? null);
-$topic = $_GET['topic'] ?? ($data_input['type'] ?? ($data_input['action'] ?? null));
+$id = $_GET['id'] ?? ($_GET['data_id'] ?? ($data_input['data']['id'] ?? null)); // Adicionado $_GET['data_id'] para notificações com 'data.id' na query string
+$topic = $_GET['topic'] ?? ($_GET['type'] ?? ($data_input['type'] ?? ($data_input['action'] ?? null))); // Adicionado $_GET['type'] para notificações com 'type' na query string
 
 // Em alguns casos de Webhook, o tópico vem como 'payment.created' ou similar
 if (strpos($topic, 'payment') !== false) $topic = 'payment';

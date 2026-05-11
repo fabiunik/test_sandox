@@ -59,6 +59,9 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
     if ($http_code !== 200) {
         error_log("Erro API Mercado Pago (HTTP $http_code): " . $response);
     }
+    
+    // Log temporário para conferir o que o Mercado Pago está devolvendo de fato
+    error_log("Resposta bruta da API MP: " . $response);
 
     $payment_info = json_decode($response, true);
     curl_close($ch);
@@ -80,6 +83,9 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
         $metodo_pagamento = $payment_info['payment_method_id'] ?? 'N/A';
         $valor_pago = $payment_info['transaction_amount'] ?? 0;
     }
+
+    // Log para verificar se o ID do pedido foi recuperado
+    error_log("Dados extraídos - Pedido ID: $pedido_id, Status MP: $status_mp");
 
     if ($pedido_id === 0) {
         error_log("Dados insuficientes para processar Pedido. ID MP: $id, Pedido: $pedido_id");

@@ -66,38 +66,42 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
     curl_close($ch);
 
     // Se for merchant_order, precisamos extrair o último pagamento
+    $metodo_pagamento = 'N/A';
+    $valor_pago = 0;
+
     if ($topic === 'merchant_order' && isset($payment_info['payments'])) {
         $last_payment = end($payment_info['payments']);
         $id = $last_payment['id'] ?? $id;
         $status_mp = $last_payment['status'] ?? 'unknown';
         $pedido_id = intval($payment_info['external_reference'] ?? 0);
+        $metodo_pagamento = $last_payment['payment_method_id'] ?? 'N/A';
+        $valor_pago = $last_payment['transaction_amount'] ?? 0;
     } else {
         $status_mp = $payment_info['status'] ?? 'unknown';
         $pedido_id = intval($payment_info['external_reference'] ?? 0);
+        $metodo_pagamento = $payment_info['payment_method_id'] ?? 'N/A';
+        $valor_pago = $payment_info['transaction_amount'] ?? 0;
     }
 
-    if (!$payment_info || $pedido_id === 0) {
+    if ($pedido_id === 0) {
         error_log("Dados insuficientes para processar Pedido. ID MP: $id, Pedido: $pedido_id");
         http_response_code(200); 
         exit;
     }
 
-    if ($status_mp !== 'unknown') {
-        
-        error_log("Processando Pagamento $id para o Pedido #$pedido_id. Status: $status_mp");
+    $pedidoModel = new Pedido($pdo);
+    $pagamentoModel = new Pagamento($pdo);
+    $agendamentoModel = new Agendamento($pdo);
 
-        $pedidoModel = new Pedido($pdo);
-        $pagamentoModel = new Pagamento($pdo);
-        $agendamentoModel = new Agendamento($pdo);
-
+    try {
         // Verifica se já registramos esse pagamento para evitar erro de duplicidade
         $pagamentoExistente = $pagamentoModel->buscarPorTransacaoId($id);
         if (!$pagamentoExistente) {
             $pagamentoModel->registrarTransacao(
                 $pedido_id, 
                 $id, 
-                $payment_info['payment_method_id'] ?? ($last_payment['payment_method_id'] ?? 'N/A'), 
-                $payment_info['transaction_amount'] ?? ($last_payment['transaction_amount'] ?? 0), 
+                $metodo_pagamento, 
+                $valor_pago, 
                 $status_mp
             );
             error_log("Transação $id registrada na tabela pagamento.");
@@ -178,6 +182,9 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
                 }
             }
         }
+    } catch (Exception $e) {
+        error_log("Erro crítico no processamento da notificação: " . $e->getMessage());
+        // Não enviamos erro 500 para o MP para evitar retentativas infinitas de um erro de lógica
     }
 }
 

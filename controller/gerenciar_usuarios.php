@@ -15,6 +15,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         if ($acao === 'criar') {
+            // Validação de confirmação de senha
+            if ($_POST['senha'] !== $_POST['confirma_senha']) {
+                throw new Exception("As senhas não conferem.");
+            }
             // Cadastro público
             $usuario->criar(
                 $_POST['nome'],
@@ -90,15 +94,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($acao === 'recuperar_senha') {
             $email = $_POST['email'] ?? '';
 
-            $dadosUsuarioEnc = $usuario->buscarPorEmail($email);
+            $dadosUsuario = $usuario->buscarPorEmail($email);
 
-            if ($dadosUsuarioEnc) {
-                // Aqui você poderia gerar um token e enviar por e-mail
-                $_SESSION['success'] = "Um link de redefinição foi enviado para seu e-mail.";
-            } else {
-                $_SESSION['error'] = "E-mail não encontrado.";
+            if ($dadosUsuario) {
+                $token = $usuario->gerarTokenRecuperacao($dadosUsuario['id']);
+                // Simulação de envio de e-mail (Link gerado no log para teste)
+                error_log("Link de recuperação para $email: https://testsandox-staging.up.railway.app/view/redefinir_senha.php?token=$token");
             }
-
+            
+            $_SESSION['success'] = "Se o e-mail estiver cadastrado, você receberá um link de recuperação em breve.";
             header("Location: ../view/login.php");
             exit;
         } elseif ($acao === 'redefinir_senha_token') {
@@ -120,7 +124,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             } else {
                 $_SESSION['error'] = "Token inválido ou expirado.";
-                header("Location: ../view/recuperar_senha.html");
                 header("Location: ../view/recuperar_senha.php");
                 exit;
             }

@@ -8,19 +8,19 @@ if (empty($termo)) {
     exit;
 }
 
-// 1. Tenta buscar em Serviços (Itens)
-$stmtItem = $pdo->prepare("SELECT id FROM itens WHERE nome LIKE ? OR descricao LIKE ? LIMIT 1");
-$stmtItem->execute(["%$termo%", "%$termo%"]);
-if ($stmtItem->fetch()) {
-    header("Location: ../view/itens.php?busca=" . urlencode($termo));
-    exit;
-}
-
-// 2. Tenta buscar em Profissionais (Terapeutas)
+// 1. Tenta buscar em Profissionais primeiro (Nomes são mais específicos)
 $stmtProf = $pdo->prepare("SELECT id FROM usuario WHERE tipo = 'terapeuta' AND nome LIKE ? LIMIT 1");
 $stmtProf->execute(["%$termo%"]);
 if ($stmtProf->fetch()) {
     header("Location: ../view/profissionais.php?busca=" . urlencode($termo));
+    exit;
+}
+
+// 2. Tenta buscar em Serviços (Itens)
+$stmtItem = $pdo->prepare("SELECT id FROM itens WHERE nome LIKE ? OR descricao LIKE ? LIMIT 1");
+$stmtItem->execute(["%$termo%", "%$termo%"]);
+if ($stmtItem->fetch()) {
+    header("Location: ../view/itens.php?busca=" . urlencode($termo));
     exit;
 }
 

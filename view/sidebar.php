@@ -15,7 +15,8 @@ $tipo = isset($_SESSION['tipo']) ? trim(strtolower($_SESSION['tipo'])) : '';
 
     <nav class="sidebar-nav">
         <?php if (isset($_SESSION['usuario_id'])): ?>
-            <a href="agendamento.php" class="sidebar-link">📅 Agendamentos</a>
+            <a href="agendamento.php" class="sidebar-link">➕ Novo Agendamento</a>
+            <a href="meus_agendamentos.php" class="sidebar-link">📅 Minha Agenda</a>
             <a href="perfil.php" class="sidebar-link">👤 Meu Perfil</a>
             <a href="pedidos.php" class="sidebar-link">📋 Meus Pedidos</a>
             <a href="reportar_problemas.php" class="sidebar-link">🆘 Reportar Problema</a>
@@ -29,9 +30,9 @@ $tipo = isset($_SESSION['tipo']) ? trim(strtolower($_SESSION['tipo'])) : '';
             <?php elseif ($tipo === 'terapeuta'): ?>
                 <div class="sidebar-divider" style="display: block !important;"></div>
                 <div class="sidebar-section-title" style="display: block !important;">Área Profissional</div>
-                <a href="perfil_profissional.php" class="sidebar-link admin-link">👨‍⚕️ Perfil Profissional</a>
-                <a href="../controller/gerenciar_itens.php" class="sidebar-link admin-link">🛠️ Meus Serviços</a>
-                <a href="disponibilidade.php" class="sidebar-link admin-link">⏰ Gerenciar Disponibilidade</a>
+                <a href="/view/perfil_profissional.php" class="sidebar-link">👨‍⚕️ Perfil Profissional</a>
+                <a href="/controller/gerenciar_itens.php" class="sidebar-link">🛠️ Meus Serviços</a>
+                <a href="/view/disponibilidade.php" class="sidebar-link">⏰ Gerenciar Disponibilidade</a>
             <?php endif; ?> <div class="sidebar-divider"></div>
             <a href="logout.php" class="sidebar-link" style="color: #ff9999 !important;">🚪 Sair da Conta</a>
 

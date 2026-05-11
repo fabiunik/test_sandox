@@ -81,8 +81,6 @@ try {
                                         <h3><?php echo htmlspecialchars($item['servico_nome']); ?></h3>
                                         <?php if ($infoPedido['status'] === 'pago'): ?>
                                             <span class="order-status confirmed">Pago</span>
-                                            <a href="avaliacao.php?agendamento_id=<?php echo $item['agendamento_id']; ?>" 
-                                               class="btn-secondary" style="font-size: 0.8rem; text-decoration: none;">Avaliar</a>
                                         <?php else: ?>
                                             <span class="order-status pending">Aguardando Pagamento</span>
                                         <?php endif; ?>
@@ -105,14 +103,24 @@ try {
                                 </h2>
                             </div>
 
-                            <div class="order-actions" style="margin-top: 30px;">
-                                <form action="pagamento.php" method="GET">
-                                    <input type="hidden" name="pedido_id" value="<?php echo $infoPedido['id']; ?>">
-                                    <button type="submit" class="btn-primary" style="padding: 12px 40px; font-size: 1.1rem; width: 100%;">
-                                        Confirmar e Ir para Pagamento
+                            <?php if ($infoPedido['status'] === 'pendente'): ?>
+                                <div class="order-actions" style="margin-top: 30px; display: flex; flex-direction: column; gap: 10px;">
+                                    <form action="pagamento.php" method="GET">
+                                        <input type="hidden" name="pedido_id" value="<?php echo $infoPedido['id']; ?>">
+                                        <button type="submit" class="btn-primary" style="padding: 12px 40px; font-size: 1.1rem; width: 100%;">
+                                            Confirmar e Ir para Pagamento
+                                        </button>
                                     </button>
-                                </form>
-                            </div>
+                                    
+                                    <form action="../controller/gerenciar_pedidos.php" method="POST" onsubmit="return confirm('Tem certeza que deseja cancelar este pedido?')">
+                                        <input type="hidden" name="acao" value="cancelar_pedido">
+                                        <input type="hidden" name="pedido_id" value="<?php echo $infoPedido['id']; ?>">
+                                        <button type="submit" class="btn-secondary" style="width: 100%; color: #dc3545; border-color: #dc3545;">
+                                            Cancelar Pedido
+                                        </button>
+                                    </form>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                     <div style="text-align: center; margin-top: 20px;">

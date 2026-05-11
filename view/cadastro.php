@@ -51,6 +51,10 @@ unset($_SESSION['error']);
             <label for="senha">Senha</label>
             <input type="password" id="senha" name="senha" placeholder="••••••••" required>
           </div>
+          <div class="input-group">
+            <label for="confirma_senha">Confirmar Senha</label>
+            <input type="password" id="confirma_senha" name="confirma_senha" placeholder="••••••••" required>
+          </div>
 
           <button type="submit" class="btn-primary">Finalizar Cadastro</button>
           
@@ -62,5 +66,17 @@ unset($_SESSION['error']);
     </main>
     <footer>© 2025 Aqui tem Terapia!</footer>
   </div>
+
+  <script>
+    document.querySelector('.form').onsubmit = function(e) {
+        const senha = document.getElementById('senha').value;
+        const confirma = document.getElementById('confirma_senha').value;
+        if (senha !== confirma) {
+            alert('As senhas não coincidem. Por favor, verifique os campos.');
+            e.preventDefault();
+            return false;
+        }
+    };
+  </script>
 </body>
 </html>

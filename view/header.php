@@ -29,7 +29,8 @@ $tipo_usuario = isset($_SESSION['tipo']) ? trim(strtolower($_SESSION['tipo'])) :
 
     <?php if ($usuario_logado): ?>
         <!-- Links para Usuários Autenticados -->
-        <a class="cta" href="agendamento.php">Agendar</a>
+        <a class="cta" href="agendamento.php">Novo Agendamento</a>
+        <a class="cta" href="meus_agendamentos.php">Minha Agenda</a>
         <a class="cta" href="perfil.php">Meu Perfil</a>
         
         <?php if ($tipo_usuario === 'administrador'): ?>

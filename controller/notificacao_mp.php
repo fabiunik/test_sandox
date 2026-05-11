@@ -9,6 +9,8 @@ require_once __DIR__ . '/../model/Pedido.php';
 require_once __DIR__ . '/../model/Pagamento.php';
 require_once __DIR__ . '/../model/Agendamento.php';
 
+require __DIR__ . '/../vendor/autoload.php';
+
 // Captura a notificação tanto via URL (IPN) quanto via Body (Webhooks JSON)
 $json_input = file_get_contents('php://input');
 $data_input = json_decode($json_input, true);
@@ -130,60 +132,57 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
             $stmtInfo->execute([$pedido_id]);
             $detalhesNotificacao = $stmtInfo->fetchAll(PDO::FETCH_ASSOC);
 
-            // Tenta carregar o autoload apenas se o arquivo existir
-            $autoloadPath = __DIR__ . '/../vendor/autoload.php';
-            if (file_exists($autoloadPath)) {
-                require_once $autoloadPath;
-                
-                $smtp_host = getenv('SMTP_HOST');
-                if (!$smtp_host) {
-                    error_log("Aviso: Variáveis SMTP não configuradas. Pulando envio de e-mail.");
-                } else {
-                    $mail = new PHPMailer(true);
-                    foreach ($detalhesNotificacao as $info) {
-                        try {
-                            // Configurações do Servidor SMTP
-                            $mail->isSMTP();
-                            $mail->Host       = $smtp_host;
-                            $mail->SMTPAuth   = true;
-                            $mail->Username   = getenv('SMTP_USER');
-                            $mail->Password   = getenv('SMTP_PASS');
-                            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                            $mail->Port       = getenv('SMTP_PORT');
-                            $mail->CharSet    = 'UTF-8';
-                            $mail->setFrom(getenv('SMTP_FROM_EMAIL'), 'Aqui tem Terapia');
+            $mail = new PHPMailer(true);
 
-                            // --- E-mail para o Cliente ---
-                            $mail->addAddress($info['cliente_email'], $info['cliente_nome']);
-                            $mail->isHTML(true);
-                            $mail->Subject = 'Confirmação de Agendamento — Aqui tem Terapia';
-                            
-                            $dataFmt = date('d/m/Y', strtotime($info['data']));
-                            $horaFmt = substr($info['horario'], 0, 5);
-                            
-                            $mail->Body = "<h1>Olá, {$info['cliente_nome']}!</h1>
-                                           <p>Seu pagamento foi aprovado e seu agendamento de <strong>{$info['servico_nome']}</strong> está confirmado.</p>
-                                           <p><strong>Data:</strong> $dataFmt<br><strong>Horário:</strong> $horaFmt<br><strong>Terapeuta:</strong> {$info['terapeuta_nome']}</p>";
-                            
-                            $mail->send();
-                            
-                            // --- E-mail para o Terapeuta ---
-                            $mail->clearAddresses();
-                            $mail->addAddress($info['terapeuta_email'], $info['terapeuta_nome']);
-                            $mail->Subject = 'Novo Agendamento Confirmado — Aqui tem Terapia';
-                            $mail->Body = "<h1>Olá, {$info['terapeuta_nome']}!</h1>
-                                           <p>Você tem um novo atendimento confirmado: <strong>{$info['servico_nome']}</strong> com o cliente <strong>{$info['cliente_nome']}</strong> para o dia $dataFmt às $horaFmt.</p>";
-                            $mail->send();
-                        } catch (Exception $e) {
-                            error_log("Erro ao enviar e-mail: {$mail->ErrorInfo}");
-                        }
-                    }
+            $smtp_host = getenv('SMTP_HOST');
+            if (!$smtp_host) {
+                error_log("Aviso: Variáveis SMTP não configuradas. Pulando envio de e-mail.");
+                http_response_code(200);
+                exit;
+            }
+
+            foreach ($detalhesNotificacao as $info) {
+                try {
+                    // Configurações do Servidor SMTP
+                    $mail->Host       = getenv('SMTP_HOST');
+                    $mail->SMTPAuth   = true;
+                    $mail->Username   = getenv('SMTP_USER');
+                    $mail->Password   = getenv('SMTP_PASS');
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port       = getenv('SMTP_PORT');
+                    $mail->CharSet    = 'UTF-8';
+
+                    // Remetente
+                    $mail->setFrom(getenv('SMTP_FROM_EMAIL'), 'Aqui tem Terapia');
+
+                    // --- E-mail para o Cliente ---
+                    $mail->addAddress($info['cliente_email'], $info['cliente_nome']);
+                    $mail->isHTML(true);
+                    $mail->Subject = 'Confirmação de Agendamento — Aqui tem Terapia';
+                    
+                    $dataFmt = date('d/m/Y', strtotime($info['data']));
+                    $horaFmt = substr($info['horario'], 0, 5);
+                    
+                    $mail->Body = "<h1>Olá, {$info['cliente_nome']}!</h1>
+                                   <p>Seu pagamento foi aprovado e seu agendamento de <strong>{$info['servico_nome']}</strong> está confirmado.</p>
+                                   <p><strong>Data:</strong> $dataFmt<br><strong>Horário:</strong> $horaFmt<br><strong>Terapeuta:</strong> {$info['terapeuta_nome']}</p>";
+                    
+                    $mail->send();
+                    
+                    // --- E-mail para o Terapeuta ---
+                    $mail->clearAddresses(); // Limpa o destinatário anterior
+                    $mail->addAddress($info['terapeuta_email'], $info['terapeuta_nome']);
+                    $mail->Subject = 'Novo Agendamento Confirmado — Aqui tem Terapia';
+                    $mail->Body = "<h1>Olá, {$info['terapeuta_nome']}!</h1>
+                                   <p>Você tem um novo atendimento confirmado: <strong>{$info['servico_nome']}</strong> com o cliente <strong>{$info['cliente_nome']}</strong> para o dia $dataFmt às $horaFmt.</p>";
+                    $mail->send();
+                } catch (Exception $e) {
+                    error_log("Erro ao enviar e-mail: {$mail->ErrorInfo}");
+                    // Continuamos para o próximo item, se houver
                 }
-            } else {
-                error_log("Aviso: vendor/autoload.php não encontrado. O envio de e-mails foi ignorado, mas o status do pedido foi atualizado.");
             }
         }
-    } catch (Exception $e) {
+    } catch (\Throwable $e) {
         error_log("Erro crítico no processamento da notificação: " . $e->getMessage());
         // Não enviamos erro 500 para o MP para evitar retentativas infinitas de um erro de lógica
     }

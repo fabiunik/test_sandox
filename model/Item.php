@@ -41,8 +41,13 @@ class Item {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function listar() {
-        $stmt = $this->con->query("SELECT * FROM itens");
+    public function listar($busca = null) {
+        if ($busca) {
+            $stmt = $this->con->prepare("SELECT * FROM itens WHERE nome LIKE ? OR descricao LIKE ?");
+            $stmt->execute(["%$busca%", "%$busca%"]);
+        } else {
+            $stmt = $this->con->query("SELECT * FROM itens");
+        }
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }

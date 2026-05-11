@@ -212,8 +212,18 @@ class Usuario {
     }
 
     // Listar terapeutas
-    public function listarTerapeutas() {
-        $stmt = $this->con->query("SELECT u.*, p.foto as imagem FROM usuario u LEFT JOIN perfil_terapeuta p ON u.id = p.usuario_id WHERE u.tipo = 'terapeuta' ORDER BY u.nome");
+    public function listarTerapeutas($busca = null) {
+        $sql = "SELECT u.*, p.foto as imagem 
+                FROM usuario u 
+                LEFT JOIN perfil_terapeuta p ON u.id = p.usuario_id 
+                WHERE u.tipo = 'terapeuta'";
+        if ($busca) {
+            $sql .= " AND u.nome LIKE :busca";
+            $stmt = $this->con->prepare($sql . " ORDER BY u.nome");
+            $stmt->execute(['busca' => "%$busca%"]);
+        } else {
+            $stmt = $this->con->query($sql . " ORDER BY u.nome");
+        }
         $terapeutas = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $terapeutas;
     }

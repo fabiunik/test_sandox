@@ -96,8 +96,9 @@ $agendamentos = $agendamentoModel->listarPorPeriodo($data_inicio, $data_fim, ($t
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Data</th>
-                                    <th>Serviço</th>
+                                    <th>Data / Hora</th>
+                                    <th>Cliente / Pedido</th>
+                                    <th>Terapia</th>
                                     <?php if ($tipo === 'administrador'): ?><th>Terapeuta</th><?php endif; ?>
                                     <th>Status</th>
                                 </tr>
@@ -105,12 +106,25 @@ $agendamentos = $agendamentoModel->listarPorPeriodo($data_inicio, $data_fim, ($t
                             <tbody>
                                 <?php foreach ($agendamentos as $ag): ?>
                                 <tr>
-                                    <td><?php echo date('d/m/Y', strtotime($ag['data'])); ?></td>
+                                    <td>
+                                        <?php echo date('d/m/Y', strtotime($ag['data'])); ?>
+                                        <br><small style="color: #666;"><?php echo substr($ag['horario'], 0, 5); ?></small>
+                                    </td>
+                                    <td>
+                                        <strong><?php echo htmlspecialchars($ag['usuario_nome']); ?></strong>
+                                        <br><small style="color: #666;">Pedido: #<?php echo $ag['pedido_id'] ?: 'N/A'; ?></small>
+                                    </td>
                                     <td><?php echo htmlspecialchars($ag['item_nome']); ?></td>
                                     <?php if ($tipo === 'administrador'): ?>
                                         <td><?php echo htmlspecialchars($ag['terapeuta_nome']); ?></td>
                                     <?php endif; ?>
-                                    <td><span class="status-badge status-<?php echo $ag['status']; ?>"><?php echo ucfirst($ag['status']); ?></span></td>
+                                    <td>
+                                        <?php if ($ag['status'] === 'confirmado'): ?>
+                                            <span class="status-badge status-confirmado">✓ Confirmado</span>
+                                        <?php else: ?>
+                                            <span style="color: #999; font-size: 0.8rem;">Aguardando</span>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>

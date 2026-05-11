@@ -77,8 +77,8 @@ class Disponibilidade {
     /**
      * Listar disponibilidades de um terapeuta
      */
-    public function listarPorTerapeuta($terapeuta_id, $limite = 50) {
-        $sql = "SELECT * FROM disponibilidade WHERE terapeuta_id = ? ORDER BY data DESC, horario DESC LIMIT " . intval($limite);
+    public function listarPorTerapeuta($terapeuta_id, $limite = 50, $offset = 0) {
+        $sql = "SELECT * FROM disponibilidade WHERE terapeuta_id = ? ORDER BY data DESC, horario DESC LIMIT " . intval($limite) . " OFFSET " . intval($offset);
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([$terapeuta_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

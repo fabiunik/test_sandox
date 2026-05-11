@@ -1,6 +1,9 @@
 <?php
 session_start();
 require_once '../controller/conectarBD.php';
+require_once '../model/Item.php';
+
+$busca = $_GET['busca'] ?? null;
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -21,12 +24,23 @@ require_once '../controller/conectarBD.php';
         <p class="lead">Atendimentos presenciais e online — escolha a terapia que mais combina com você.</p>
 
         <div class="services">
+          <?php if ($busca): ?>
+            <p>Mostrando resultados para: <strong>"<?php echo htmlspecialchars($busca); ?>"</strong> | <a href="itens.php">Limpar busca</a></p>
+          <?php endif; ?>
           <div class="card-grid">
             <?php
-            $sql = "SELECT i.id, i.nome, i.descricao, i.valor, i.imagem, i.terapeuta_id, u.nome AS terapeuta
-                    FROM itens i
+            $itemModel = new Item($pdo);
+            // Query customizada para trazer o nome do terapeuta junto
+            $sql = "SELECT i.*, u.nome AS terapeuta 
+                    FROM itens i 
                     JOIN usuario u ON i.terapeuta_id = u.id";
-            $stmt = $pdo->query($sql);
+            if ($busca) {
+                $sql .= " WHERE i.nome LIKE :b OR i.descricao LIKE :b";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute(['b' => "%$busca%"]);
+            } else {
+                $stmt = $pdo->query($sql);
+            }
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             if ($result):

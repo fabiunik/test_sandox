@@ -117,9 +117,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Buscar disponibilidades
-$disponibilidades = $disponibilidadeModel->listarPorTerapeuta($usuarioLogadoId, 50);
+$pagina = isset($_GET['p']) ? max(1, intval($_GET['p'])) : 1;
+$itens_por_pagina = 8;
+$offset = ($pagina - 1) * $itens_por_pagina;
+
+$total_disponibilidades = $disponibilidadeModel->contarSlotsDisponíveis($usuarioLogadoId);
+$total_paginas = ceil($total_disponibilidades / $itens_por_pagina);
+$disponibilidades = $disponibilidadeModel->listarPorTerapeuta($usuarioLogadoId, $itens_por_pagina, $offset);
 
 // Mensagens de sessão
 $mensagem = $_SESSION['mensagem'] ?? '';
 unset($_SESSION['mensagem']);
-

@@ -4,8 +4,9 @@ require_once __DIR__ . '/../controller/conectarBD.php';
 require_once __DIR__ . '/../model/Usuario.php';
 
 try {
+    $busca = $_GET['busca'] ?? null;
     $usuarioModel = new Usuario($pdo);
-    $terapeutas = $usuarioModel->listarTerapeutas();
+    $terapeutas = $usuarioModel->listarTerapeutas($busca);
 } catch (Exception $e) {
     $erro_db = $e->getMessage();
 }
@@ -29,6 +30,10 @@ try {
 
         <?php if (isset($erro_db)): ?>
             <div class="alert alert-error">Erro ao carregar dados: <?php echo htmlspecialchars($erro_db); ?></div>
+        <?php endif; ?>
+
+        <?php if ($busca): ?>
+          <p>Mostrando profissionais que combinam com: <strong>"<?php echo htmlspecialchars($busca); ?>"</strong> | <a href="profissionais.php">Limpar busca</a></p>
         <?php endif; ?>
 
         <div class="profissionais-cards">

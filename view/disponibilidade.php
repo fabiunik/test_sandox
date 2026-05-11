@@ -189,17 +189,24 @@
             <?php endforeach; ?>
           </tbody>
         </table>
+
+        <!-- PAGINAÇÃO -->
+        <div class="pagination" style="display: flex; justify-content: center; gap: 20px; align-items: center; margin-top: 20px;">
+            <?php if ($pagina > 1): ?>
+                <a href="?p=<?php echo $pagina - 1; ?>" class="btn-secondary" style="text-decoration: none;">← Anterior</a>
+            <?php endif; ?>
+            
+            <span style="font-weight: 600;">Página <?php echo $pagina; ?> de <?php echo $total_paginas; ?></span>
+
+            <?php if ($pagina < $total_paginas): ?>
+                <a href="?p=<?php echo $pagina + 1; ?>" class="btn-secondary" style="text-decoration: none;">Próxima →</a>
+            <?php endif; ?>
+        </div>
       <?php else: ?>
         <p style="text-align: center; color: #666; padding: 20px;">Nenhuma disponibilidade registrada no momento.</p>
       <?php endif; ?>
     </div>
   </div>
 </div>
-
-<script>
-function toggleMenu() {
-  // menu logic
-}
-</script>
 </body>
 </html>

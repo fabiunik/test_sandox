@@ -122,19 +122,7 @@ $itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body class="gerenciar-itens">
   <div class="site">
-    <?php include '../view/sidebar.php'; ?>
-
-    <header>
-      <div class="logo">Aqui tem Terapia!</div>
-      <nav>
-        <button class="menu-toggle" onclick="toggleMenu()" aria-label="Abrir menu">
-          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="#333" viewBox="0 0 16 16">
-            <path d="M2 4h12v2H2V4zm0 4h12v2H2V8zm0 4h12v2H2v-2z"/>
-          </svg>
-        </button>
-        <a class="cta" href="tela_inicial.html">Início</a>
-      </nav>
-    </header>
+    <?php include '../view/header.php'; ?>
 
     <main class="services-wrapper">
         <?php if ($mensagem_sucesso): ?>

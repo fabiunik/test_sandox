@@ -16,6 +16,12 @@ $tipo_usuario = isset($_SESSION['tipo']) ? trim(strtolower($_SESSION['tipo'])) :
   </div>
   
   <nav>
+    <!-- Barra de Pesquisa Global -->
+    <form action="../controller/pesquisa_global.php" method="GET" class="search-form-header">
+      <input type="text" name="termo" placeholder="Buscar serviço ou profissional..." required>
+      <button type="submit">🔍</button>
+    </form>
+
     <!-- Links Públicos -->
     <a class="cta" href="tela_inicial.php">Início</a>
     <a class="cta" href="itens.php">Serviços</a>

@@ -104,9 +104,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($dadosUsuario) {
                 $token = $usuario->gerarTokenRecuperacao($dadosUsuario['id']);
                 
-                // Carrega o autoloader apenas se necessário e se existir
-                $autoloadPath = __DIR__ . '/../vendor/autoload.php';
-                if (file_exists($autoloadPath)) {
+                // Carrega o autoloader apenas se necessário
+                $autoloadPath = file_exists(__DIR__ . '/../vendor/autoload.php') ? __DIR__ . '/../vendor/autoload.php' : null;
+                if ($autoloadPath) {
                     require_once $autoloadPath;
                 }
 

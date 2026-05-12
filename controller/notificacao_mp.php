@@ -2,7 +2,7 @@
 // Previne que qualquer erro ou aviso "suje" a resposta enviada ao Mercado Pago
 ob_start();
 use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
 require_once __DIR__ . '/conectarBD.php';
 require_once __DIR__ . '/../model/Pedido.php';
@@ -136,15 +136,16 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
             $stmtInfo->execute([$pedido_id]);
             $detalhesNotificacao = $stmtInfo->fetchAll(PDO::FETCH_ASSOC);
 
-            // Tenta carregar o PHPMailer apenas se o autoload existir no servidor
-            $autoloadPath = __DIR__ . '/../vendor/autoload.php';
-            if (file_exists($autoloadPath)) {
+            // Tenta carregar o PHPMailer procurando em locais comuns do servidor
+            $autoloadPath = file_exists(__DIR__ . '/../vendor/autoload.php') ? __DIR__ . '/../vendor/autoload.php' : null;
+            
+            if ($autoloadPath) {
                 require_once $autoloadPath;
 
                 $smtp_host = getenv('MAILTRAP_HOST');
                 if (!$smtp_host) {
                     error_log("Aviso: Variáveis MAILTRAP_HOST não configuradas. Pulando envio de e-mail.");
-                } else {
+                } elseif (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
                     $mail = new PHPMailer(true);
                     foreach ($detalhesNotificacao as $info) {
                         try {
@@ -182,7 +183,7 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
                             $mail->Body = "<h1>Olá, {$info['terapeuta_nome']}!</h1>
                                            <p>Você tem um novo atendimento confirmado: <strong>{$info['servico_nome']}</strong> com o cliente <strong>{$info['cliente_nome']}</strong> para o dia $dataFmt às $horaFmt.</p>";
                             $mail->send();
-                        } catch (Exception $e) {
+                        } catch (PHPMailerException $e) {
                             error_log("Erro ao enviar e-mail: {$mail->ErrorInfo}");
                         }
                     }

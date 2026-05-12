@@ -4,6 +4,7 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
 // Carrega o autoloader do Composer (necessário para o PHPMailer)
 session_start();
@@ -140,6 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $mail->send();
                         error_log("Email de recuperação enviado com sucesso para $email.");
                     } catch (Exception $e) {
+                    } catch (PHPMailerException $e) {
                         error_log("Erro ao enviar email de recuperação para $email: {$mail->ErrorInfo}");
                     }
                 } else {

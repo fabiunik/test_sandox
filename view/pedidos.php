@@ -17,21 +17,22 @@ $itemModel = new Item($pdo);
 $agendamento_id = intval($_GET['agendamento_id'] ?? 0);
 $pedido_id = intval($_GET['pedido_id'] ?? 0);
 $pedidosParaExibir = [];
+$mensagem_erro = null;
 
 try {
     if ($agendamento_id > 0) {
         $agendamento = $agendamentoModel->buscarPorId($agendamento_id);
         if (!$agendamento || $agendamento['usuario_id'] != $_SESSION['usuario_id']) {
-            throw new Exception("Agendamento não encontrado.");
-        }
-
-        if (empty($agendamento['pedido_id'])) {
-            $item = $itemModel->buscarPorId($agendamento['itens_id']);
-            $valor = $item['valor'] ?? 0;
-            $pedido_id = $pedidoModel->criar($_SESSION['usuario_id'], $valor);
-            $agendamentoModel->vincularPedido($agendamento_id, $pedido_id);
+            $mensagem_erro = "Agendamento não encontrado ou acesso negado.";
         } else {
-            $pedido_id = $agendamento['pedido_id'];
+            if (empty($agendamento['pedido_id'])) {
+                $item = $itemModel->buscarPorId($agendamento['itens_id']);
+                $valor = $item['valor'] ?? 0;
+                $pedido_id = $pedidoModel->criar($_SESSION['usuario_id'], $valor);
+                $agendamentoModel->vincularPedido($agendamento_id, $pedido_id);
+            } else {
+                $pedido_id = $agendamento['pedido_id'];
+            }
         }
     }
 
@@ -45,11 +46,8 @@ try {
         $pedidosParaExibir = $pedidoModel->listarPorUsuario($_SESSION['usuario_id']);
     }
 
-    if (empty($pedidosParaExibir)) {
-        throw new Exception("Nenhum pedido selecionado para visualização.");
-    }
 } catch (Exception $e) {
-    die("Erro: " . $e->getMessage());
+    $mensagem_erro = "Erro ao processar pedidos: " . $e->getMessage();
 }
 ?>
 <!DOCTYPE html>
@@ -110,7 +108,6 @@ try {
                                         <button type="submit" class="btn-primary" style="padding: 12px 40px; font-size: 1.1rem; width: 100%;">
                                             Confirmar e Ir para Pagamento
                                         </button>
-                                    </button>
                                     
                                     <form action="../controller/gerenciar_pedidos.php" method="POST" onsubmit="return confirm('Tem certeza que deseja cancelar este pedido?')">
                                         <input type="hidden" name="acao" value="cancelar_pedido">
@@ -122,10 +119,12 @@ try {
                                 </div>
                             <?php endif; ?>
                         </div>
-                    <?php endforeach; ?>
-                    <div style="text-align: center; margin-top: 20px;">
-                        <a href="agendamento.php" class="btn-secondary" style="text-decoration: none; padding: 12px 24px;">Adicionar novo serviço</a>
+                        <?php endforeach; ?>
                     </div>
+                <?php endif; ?>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <a href="agendamento.php" class="btn-secondary" style="text-decoration: none; padding: 12px 24px;">Adicionar novo serviço</a>
                 </div>
             </section>
         </main>

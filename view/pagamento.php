@@ -9,12 +9,13 @@ if (!isset($_SESSION['usuario_id'])) {
 }
 
 $pedido_id = intval($_GET['pedido_id'] ?? 0);
-$pedidoModel = new Pedido($pdo);
-$infoPedido = $pedidoModel->obterPorId($pedido_id);
-$detalhes = $pedidoModel->obterDetalhesPedido($pedido_id);
 
 // Verifica se o pedido existe e pertence ao usuário logado
+$pedidoModel = new Pedido($pdo);
+$infoPedido = $pedido_id > 0 ? $pedidoModel->obterPorId($pedido_id) : null;
 $pedidoValido = ($infoPedido && $infoPedido['usuario_id'] == $_SESSION['usuario_id']);
+$detalhes = $pedidoValido ? $pedidoModel->obterDetalhesPedido($pedido_id) : [];
+
 $preference_id = null;
 $result = [];
 

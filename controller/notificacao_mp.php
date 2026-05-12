@@ -160,7 +160,7 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
                             $mail->CharSet    = 'UTF-8';
 
                             // Remetente
-                            $mail->setFrom(getenv('MAILTRAP_FROM_EMAIL'), getenv('MAILTRAP_FROM_NAME'));
+                            $mail->setFrom(getenv('MAILTRAP_FROM_EMAIL') ?: 'contato@teste.com', getenv('MAILTRAP_FROM_NAME') ?: 'Aqui tem Terapia');
 
                             // --- E-mail para o Cliente ---
                             $mail->addAddress($info['cliente_email'], $info['cliente_nome']);

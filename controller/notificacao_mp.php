@@ -118,7 +118,10 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
         if ($status_mp === 'approved') {
             $pedidoModel->atualizarStatus($pedido_id, 'pago');
             error_log("Status do Pedido #$pedido_id atualizado para 'pago' no banco de dados.");
-            $pdo->prepare("UPDATE agendamento SET status = 'confirmado' WHERE pedido_id = ?")
+            
+            // Usamos 'pago' também para agendamento para evitar erro de tamanho de coluna (Data truncated)
+            // e garantir consistência com a tabela pedido.
+            $pdo->prepare("UPDATE agendamento SET status = 'pago' WHERE pedido_id = ?")
                 ->execute([$pedido_id]);
 
             // NOVO: Buscar e-mails e detalhes para envio de confirmação
@@ -136,9 +139,22 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
             $stmtInfo->execute([$pedido_id]);
             $detalhesNotificacao = $stmtInfo->fetchAll(PDO::FETCH_ASSOC);
 
-            // Tenta carregar o PHPMailer procurando em locais comuns do servidor
-            $autoloadPath = file_exists(__DIR__ . '/../vendor/autoload.php') ? __DIR__ . '/../vendor/autoload.php' : null;
-            
+            // Busca o autoloader em múltiplos níveis
+            $possiblePaths = [
+                __DIR__ . '/../vendor/autoload.php',
+                dirname(__DIR__, 2) . '/vendor/autoload.php',
+                '/var/www/html/vendor/autoload.php',
+                '/app/vendor/autoload.php'
+            ];
+
+            $autoloadPath = null;
+            foreach ($possiblePaths as $path) {
+                if (file_exists($path)) {
+                    $autoloadPath = $path;
+                    break;
+                }
+            }
+
             if ($autoloadPath) {
                 require_once $autoloadPath;
 

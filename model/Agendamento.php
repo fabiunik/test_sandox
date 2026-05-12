@@ -27,7 +27,13 @@ class Agendamento {
     }
 
     public function listarPorUsuario($usuario_id) {
-        $stmt = $this->con->prepare("SELECT a.*, u.nome as terapeuta_nome, i.nome as item_nome FROM agendamento a JOIN usuario u ON a.terapeuta_id = u.id JOIN itens i ON a.itens_id = i.id WHERE a.usuario_id = ? ORDER BY a.data DESC, a.horario DESC");
+        $stmt = $this->con->prepare("SELECT a.*, u.nome as terapeuta_nome, i.nome as item_nome, p.status as pedido_status 
+                                     FROM agendamento a 
+                                     JOIN usuario u ON a.terapeuta_id = u.id 
+                                     JOIN itens i ON a.itens_id = i.id 
+                                     LEFT JOIN pedido p ON a.pedido_id = p.id
+                                     WHERE a.usuario_id = ? 
+                                     ORDER BY a.data DESC, a.horario DESC");
         $stmt->execute([$usuario_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

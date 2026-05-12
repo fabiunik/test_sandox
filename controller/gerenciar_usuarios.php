@@ -104,8 +104,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($dadosUsuario) {
                 $token = $usuario->gerarTokenRecuperacao($dadosUsuario['id']);
                 
-                // Carrega o autoloader apenas se necessário
-                $autoloadPath = file_exists(__DIR__ . '/../vendor/autoload.php') ? __DIR__ . '/../vendor/autoload.php' : null;
+                // Busca o autoloader em múltiplos níveis para garantir compatibilidade com o Railway
+                $possiblePaths = [
+                    __DIR__ . '/../vendor/autoload.php',
+                    dirname(__DIR__, 2) . '/vendor/autoload.php',
+                    '/var/www/html/vendor/autoload.php',
+                    '/app/vendor/autoload.php'
+                ];
+
+                $autoloadPath = null;
+                foreach ($possiblePaths as $path) {
+                    if (file_exists($path)) {
+                        $autoloadPath = $path;
+                        break;
+                    }
+                }
+
                 if ($autoloadPath) {
                     require_once $autoloadPath;
                 }

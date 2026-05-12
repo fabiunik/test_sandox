@@ -139,19 +139,13 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
             $stmtInfo->execute([$pedido_id]);
             $detalhesNotificacao = $stmtInfo->fetchAll(PDO::FETCH_ASSOC);
 
-            // Busca o autoloader em múltiplos níveis
-            $possiblePaths = [
-                __DIR__ . '/../vendor/autoload.php',
-                dirname(__DIR__, 2) . '/vendor/autoload.php',
-                '/var/www/html/vendor/autoload.php',
-                '/app/vendor/autoload.php'
-            ];
-
-            $autoloadPath = null;
-            foreach ($possiblePaths as $path) {
-                if (file_exists($path)) {
-                    $autoloadPath = $path;
-                    break;
+            // Localização do autoloader na raiz do projeto
+            $autoloadPath = dirname(__DIR__) . '/vendor/autoload.php';
+            
+            // Fallback para o caminho padrão do Railway
+            if (!file_exists($autoloadPath)) {
+                if (file_exists('/app/vendor/autoload.php')) {
+                    $autoloadPath = '/app/vendor/autoload.php';
                 }
             }
 
@@ -205,7 +199,7 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
                     }
                 }
             } else {
-                error_log("Aviso: vendor/autoload.php não encontrado. O status do pedido foi atualizado, mas os e-mails não foram enviados.");
+                error_log("Erro: vendor/autoload.php não encontrado em $autoloadPath. Os e-mails de confirmação não foram enviados.");
             }
         }
     } catch (\Throwable $e) {

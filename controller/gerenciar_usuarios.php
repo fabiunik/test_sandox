@@ -104,19 +104,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($dadosUsuario) {
                 $token = $usuario->gerarTokenRecuperacao($dadosUsuario['id']);
                 
-                // Busca o autoloader em múltiplos níveis para garantir compatibilidade com o Railway
-                $possiblePaths = [
-                    __DIR__ . '/../vendor/autoload.php',
-                    dirname(__DIR__, 2) . '/vendor/autoload.php',
-                    '/var/www/html/vendor/autoload.php',
-                    '/app/vendor/autoload.php'
-                ];
-
-                $autoloadPath = null;
-                foreach ($possiblePaths as $path) {
-                    if (file_exists($path)) {
-                        $autoloadPath = $path;
-                        break;
+                // Localização do autoloader na raiz do projeto
+                $autoloadPath = dirname(__DIR__) . '/vendor/autoload.php';
+                
+                // Fallback para o caminho padrão do Railway (/app)
+                if (!file_exists($autoloadPath)) {
+                    if (file_exists('/app/vendor/autoload.php')) {
+                        $autoloadPath = '/app/vendor/autoload.php';
                     }
                 }
 
@@ -157,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         error_log("Erro ao enviar email de recuperação para $email: {$mail->ErrorInfo}");
                     }
                 } else {
-                    error_log("Aviso: PHPMailer não carregado. Verifique a pasta vendor no Railway.");
+                    error_log("Erro: PHPMailer não carregado em $autoloadPath. Verifique se o 'composer install' foi executado no deploy.");
                     // Fallback para o log caso o e-mail não possa ser enviado
                     error_log("Link de recuperação (Simulação): https://testsandox-staging.up.railway.app/view/redefinir_senha.php?token=$token");
                 }

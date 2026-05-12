@@ -1,12 +1,18 @@
 <?php
 // Ativa exibição de erros
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
+// Carrega o autoloader do Composer (necessário para o PHPMailer)
 session_start();
 
 require_once __DIR__ . '/conectarBD.php';
 require_once __DIR__ . '/../model/Usuario.php';
 
 $usuario = new Usuario($pdo);
+require __DIR__ . '/../vendor/autoload.php'; // Adicione esta linha
 
 // Processamento do formulário
 
@@ -98,8 +104,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($dadosUsuario) {
                 $token = $usuario->gerarTokenRecuperacao($dadosUsuario['id']);
-                // Simulação de envio de e-mail (Link gerado no log para teste)
-                error_log("Link de recuperação para $email: https://testsandox-staging.up.railway.app/view/redefinir_senha.php?token=$token");
+                
+                // --- INÍCIO: Substituição do error_log pelo envio real de e-mail com PHPMailer ---
+                $mail = new PHPMailer(true); // Habilita exceções para tratamento de erros
+
+                try {
+                    // Configurações do Servidor SMTP (Mailtrap)
+                    $mail->isSMTP();
+                    $mail->Host       = getenv('MAILTRAP_HOST');
+                    $mail->SMTPAuth   = true;
+                    $mail->Username   = getenv('MAILTRAP_USERNAME');
+                    $mail->Password   = getenv('MAILTRAP_PASSWORD');
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; // Usar STARTTLS para porta 2525 ou 587
+                    $mail->Port       = getenv('MAILTRAP_PORT');
+                    $mail->CharSet    = 'UTF-8';
+
+                    // Remetente e Destinatário
+                    $mail->setFrom(getenv('MAILTRAP_FROM_EMAIL'), getenv('MAILTRAP_FROM_NAME'));
+                    $mail->addAddress($email); // Adiciona o destinatário
+
+                    // Conteúdo do E-mail
+                    $mail->isHTML(true);
+                    $mail->Subject = 'Recuperacao de Senha - Aqui tem Terapia!';
+                    $recoveryLink = "https://testsandox-staging.up.railway.app/view/redefinir_senha.php?token=$token";
+                    
+                    $mail->Body    = "Olá,<br><br>Recebemos uma solicitação para redefinir sua senha. Por favor, clique no link abaixo para criar uma nova senha:<br><br><a href=\"$recoveryLink\">$recoveryLink</a><br><br>Se você não solicitou isso, pode ignorar este e-mail.<br><br>Atenciosamente,<br>Equipe Aqui tem Terapia!";
+                    $mail->AltBody = "Olá,\n\nRecebemos uma solicitação para redefinir sua senha. Por favor, copie e cole o link abaixo em seu navegador para criar uma nova senha:\n\n$recoveryLink\n\nSe você não solicitou isso, pode ignorar este e-mail.\n\nAtenciosamente,\nEquipe Aqui tem Terapia!";
+
+                    $mail->send();
+                    error_log("Email de recuperação enviado com sucesso para $email."); // Mantém um log de sucesso
+                } catch (Exception $e) {
+                    error_log("Erro ao enviar email de recuperação para $email: {$mail->ErrorInfo}");
+                    // Para segurança, mantemos a mensagem genérica para o usuário,
+                    // mesmo se o envio falhar, para não indicar se o e-mail existe ou não.
+                }
+                // --- FIM: Substituição do error_
             }
             
             $_SESSION['success'] = "Se o e-mail estiver cadastrado, você receberá um link de recuperação em breve.";

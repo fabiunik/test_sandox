@@ -141,9 +141,9 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
             if (file_exists($autoloadPath)) {
                 require_once $autoloadPath;
 
-                $smtp_host = getenv('SMTP_HOST');
+                $smtp_host = getenv('MAILTRAP_HOST');
                 if (!$smtp_host) {
-                    error_log("Aviso: Variáveis SMTP não configuradas. Pulando envio de e-mail.");
+                    error_log("Aviso: Variáveis MAILTRAP_HOST não configuradas. Pulando envio de e-mail.");
                 } else {
                     $mail = new PHPMailer(true);
                     foreach ($detalhesNotificacao as $info) {
@@ -152,14 +152,14 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
                             $mail->isSMTP();
                             $mail->Host       = $smtp_host;
                             $mail->SMTPAuth   = true;
-                            $mail->Username   = getenv('SMTP_USER');
-                            $mail->Password   = getenv('SMTP_PASS');
+                            $mail->Username   = getenv('MAILTRAP_USERNAME');
+                            $mail->Password   = getenv('MAILTRAP_PASSWORD');
                             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                            $mail->Port       = getenv('SMTP_PORT');
+                            $mail->Port       = getenv('MAILTRAP_PORT');
                             $mail->CharSet    = 'UTF-8';
 
                             // Remetente
-                            $mail->setFrom(getenv('SMTP_FROM_EMAIL'), 'Aqui tem Terapia');
+                            $mail->setFrom(getenv('MAILTRAP_FROM_EMAIL'), getenv('MAILTRAP_FROM_NAME'));
 
                             // --- E-mail para o Cliente ---
                             $mail->addAddress($info['cliente_email'], $info['cliente_nome']);

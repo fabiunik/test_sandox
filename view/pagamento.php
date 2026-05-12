@@ -13,12 +13,14 @@ $pedidoModel = new Pedido($pdo);
 $infoPedido = $pedidoModel->obterPorId($pedido_id);
 $detalhes = $pedidoModel->obterDetalhesPedido($pedido_id);
 
-if (!$infoPedido || $infoPedido['usuario_id'] != $_SESSION['usuario_id']) {
-    die("Pedido não encontrado.");
-}
+// Verifica se o pedido existe e pertence ao usuário logado
+$pedidoValido = ($infoPedido && $infoPedido['usuario_id'] == $_SESSION['usuario_id']);
+$preference_id = null;
+$result = [];
 
 // --- INTEGRAÇÃO MERCADO PAGO ---
-$access_token = getenv('MP_ACCESS_TOKEN');
+if ($pedidoValido) {
+    $access_token = getenv('MP_ACCESS_TOKEN');
 $public_key = getenv('MP_PUBLIC_KEY');
 
 if (!$access_token || !$public_key) {
@@ -105,10 +107,12 @@ if (curl_errno($ch)) {
 curl_close($ch);
 
 $preference_id = $result['id'] ?? null;
+}
 
-if ($preference_id) {
+if ($pedidoValido && $preference_id) {
     $pedidoModel->atualizarCheckoutId($pedido_id, $preference_id);
 }
+$public_key = getenv('MP_PUBLIC_KEY');
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -128,27 +132,33 @@ if ($preference_id) {
 
         <main>
             <section class="content" style="max-width: 600px; margin: 0 auto; text-align: center;">
-                <h1>Finalizar Pagamento</h1>
-                <p class="lead">Pedido #<?php echo $pedido_id; ?></p>
-                
-                <?php if ($preference_id): ?>
+                <?php if (!$pedidoValido): ?>
+                    <h1>Meus Pedidos</h1>
+                    <p class="empty-message">Você ainda não possui pedidos registrados ou este pedido não foi encontrado.</p>
+                    <a href="tela_inicial.php" class="btn-primary" style="text-decoration: none; display: inline-block; padding: 10px 20px; margin-top: 20px;">Explorar Serviços</a>
+                <?php else: ?>
+                    <h1>Finalizar Pagamento</h1>
+                    <p class="lead">Pedido #<?php echo $pedido_id; ?></p>
+                    
+                    <?php if ($preference_id): ?>
                     <div class="card" style="margin-bottom: 20px; padding: 30px; background: white;">
                         <h2 style="font-size: 2rem; color: var(--cta-bg);">
                             R$ <?php echo number_format($infoPedido['valor_total'], 2, ',', '.'); ?>
                         </h2>
                         <p>Você será redirecionado para o ambiente seguro do Mercado Pago.</p>
                     </div>
-                <?php else: ?>
+                    <?php else: ?>
                     <div class="alert alert-error">
                         <p><strong>Erro ao gerar pagamento:</strong></p>
                         <p><?php echo htmlspecialchars($result['message'] ?? 'Erro de comunicação com o Mercado Pago.'); ?></p>
                         <p>Verifique se as chaves MP_ACCESS_TOKEN e MP_PUBLIC_KEY estão configuradas corretamente no Railway.</p>
                         <a href="pedidos.php" class="btn-secondary" style="margin-top: 15px; display: inline-block;">Voltar</a>
                     </div>
-                <?php endif; ?>
+                    <?php endif; ?>
 
-                <!-- Container do Botão do Mercado Pago -->
-                <div id="wallet_container"></div>
+                    <!-- Container do Botão do Mercado Pago -->
+                    <div id="wallet_container"></div>
+                <?php endif; ?>
             </section>
         </main>
     </div>

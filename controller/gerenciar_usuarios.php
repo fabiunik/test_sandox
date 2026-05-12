@@ -109,12 +109,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // Fallback para o caminho padrão do Railway (/app)
                 if (!file_exists($autoloadPath)) {
-                    if (file_exists('/app/vendor/autoload.php')) {
-                        $autoloadPath = '/app/vendor/autoload.php';
-                    }
+                    $autoloadPath = '/app/vendor/autoload.php';
                 }
 
-                if ($autoloadPath) {
+                if (file_exists($autoloadPath)) {
                     require_once $autoloadPath;
                 }
 

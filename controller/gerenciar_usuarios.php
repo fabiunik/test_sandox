@@ -108,6 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $dadosUsuario = $usuario->buscarPorEmail($email);
 
             if ($dadosUsuario) {
+                error_log("Iniciando processo de recuperação para: $email");
                 $token = $usuario->gerarTokenRecuperacao($dadosUsuario['id']);
                 
                 // --- INÍCIO: Substituição do error_log pelo envio real de e-mail com PHPMailer ---
@@ -122,8 +123,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $mail->Username   = getenv('MAILTRAP_USERNAME');
                         $mail->Password   = getenv('MAILTRAP_PASSWORD');
                         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; 
-                        $mail->Port       = getenv('MAILTRAP_PORT');
+                        $mail->Port       = getenv('MAILTRAP_PORT') ?: 2525;
                         $mail->CharSet    = 'UTF-8';
+
+                        if (empty($mail->Host) || empty($mail->Username)) {
+                            error_log("ERRO: Configurações de e-mail ausentes no ambiente Railway.");
+                            throw new Exception("Configurações SMTP não encontradas.");
+                        }
 
                         // Remetente e Destinatário
                         $mail->setFrom(getenv('MAILTRAP_FROM_EMAIL') ?: 'contato@teste.com', getenv('MAILTRAP_FROM_NAME') ?: 'Aqui tem Terapia');
@@ -139,17 +145,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         $mail->send();
                         error_log("Email de recuperação enviado com sucesso para $email.");
-                    } catch (PHPMailerException $e) {
-                        error_log("Erro ao enviar email de recuperação para $email: {$mail->ErrorInfo}");
+                    } catch (Exception $e) {
+                        error_log("Erro PHPMailer ao enviar para $email: " . $e->getMessage() . " | Info: " . $mail->ErrorInfo);
                     }
                 } else {
                     error_log("Erro: PHPMailer não carregado em $autoloadPath. Verifique se o 'composer install' foi executado no deploy.");
                     // Fallback para o log caso o e-mail não possa ser enviado
                     error_log("Link de recuperação (Simulação): https://testsandox-staging.up.railway.app/view/redefinir_senha.php?token=$token");
                 }
-                // --- FIM: Substituição do error_
+            } else {
+                error_log("Tentativa de recuperação falhou: e-mail $email não encontrado no banco.");
             }
-            
+
             $_SESSION['success'] = "Se o e-mail estiver cadastrado, você receberá um link de recuperação em breve.";
             header("Location: ../view/login.php");
             exit;

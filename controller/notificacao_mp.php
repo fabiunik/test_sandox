@@ -8,6 +8,7 @@ use PHPMailer\PHPMailer\Exception as PHPMailerException;
 $tentativasAutoload = [
     __DIR__ . '/../vendor/autoload.php',
     dirname(__DIR__, 2) . '/vendor/autoload.php',
+    '/var/www/html/vendor/autoload.php',
     '/app/vendor/autoload.php'
 ];
 
@@ -171,7 +172,7 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
                             $mail->Username   = getenv('MAILTRAP_USERNAME');
                             $mail->Password   = getenv('MAILTRAP_PASSWORD');
                             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-                            $mail->Port       = getenv('MAILTRAP_PORT');
+                            $mail->Port       = getenv('MAILTRAP_PORT') ?: 2525;
                             $mail->CharSet    = 'UTF-8';
 
                             // Remetente

@@ -11,7 +11,8 @@ session_start();
 $tentativasAutoload = [
     __DIR__ . '/../vendor/autoload.php',           // Caminho relativo local
     dirname(__DIR__, 2) . '/vendor/autoload.php',  // Subindo dois níveis
-    '/app/vendor/autoload.php'                     // Padrão do Railway/Nixpacks
+    '/var/www/html/vendor/autoload.php',           // Caminho absoluto no Railway
+    '/app/vendor/autoload.php'                     // Fallback Railway
 ];
 
 $autoloadPath = null;
@@ -155,9 +156,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $mail->send();
                         error_log("Email de recuperação enviado com sucesso para $email.");
                     } else {
-                        $caminhoTentado = $autoloadPath ?: "NÃO ENCONTRADO";
-                        error_log("ERRO DE DEPENDÊNCIA: O PHPMailer não está disponível.");
-                        error_log("Caminho verificado: " . (__DIR__ . '/../vendor/autoload.php'));
+                        error_log("ERRO CRÍTICO: PHPMailer não carregado.");
+                        error_log("Caminhos testados: " . implode(' | ', $tentativasAutoload));
+                        error_log("Diretório atual: " . __DIR__);
+                        error_log("Vendor existe em " . __DIR__ . "/../vendor? " . (is_dir(__DIR__ . '/../vendor') ? 'SIM' : 'NÃO'));
 
                         // Fallback para o log caso o e-mail não possa ser enviado
                         error_log("Link de recuperação (Simulação): https://testsandox-staging.up.railway.app/view/redefinir_senha.php?token=$token");

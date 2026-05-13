@@ -8,9 +8,19 @@ use PHPMailer\PHPMailer\Exception as PHPMailerException;
 session_start();
 
 // Carrega o autoloader do Composer no início para garantir que o PHPMailer esteja disponível
-$autoloadPath = __DIR__ . '/../vendor/autoload.php';
-if (file_exists($autoloadPath)) {
-    require_once $autoloadPath;
+$tentativasAutoload = [
+    __DIR__ . '/../vendor/autoload.php',           // Caminho relativo local
+    dirname(__DIR__, 2) . '/vendor/autoload.php',  // Subindo dois níveis
+    '/app/vendor/autoload.php'                     // Padrão do Railway/Nixpacks
+];
+
+$autoloadPath = null;
+foreach ($tentativasAutoload as $caminho) {
+    if (file_exists($caminho)) {
+        require_once $caminho;
+        $autoloadPath = $caminho;
+        break;
+    }
 }
 
 require_once __DIR__ . '/conectarBD.php';
@@ -145,7 +155,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $mail->send();
                         error_log("Email de recuperação enviado com sucesso para $email.");
                     } else {
-                        error_log("Erro: PHPMailer não carregado. Autoload verificado em: " . realpath($autoloadPath));
+                        $caminhoTentado = $autoloadPath ?: __DIR__ . '/../vendor/autoload.php';
+                        error_log("Erro: PHPMailer não carregado. Autoload não encontrado em: " . $caminhoTentado);
                         // Fallback para o log caso o e-mail não possa ser enviado
                         error_log("Link de recuperação (Simulação): https://testsandox-staging.up.railway.app/view/redefinir_senha.php?token=$token");
                     }

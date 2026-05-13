@@ -5,11 +5,10 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
 // Carrega o autoloader do Composer para que o PHPMailer e outras libs funcionem
-$autoloadPath = dirname(__DIR__) . '/vendor/autoload.php';
-if (!file_exists($autoloadPath)) {
-    $autoloadPath = '/app/vendor/autoload.php'; // Suporte para o ambiente Railway
+$autoloadPath = __DIR__ . '/../vendor/autoload.php';
+if (file_exists($autoloadPath)) {
+    require_once $autoloadPath;
 }
-if (file_exists($autoloadPath)) require_once $autoloadPath;
 
 require_once __DIR__ . '/conectarBD.php';
 require_once __DIR__ . '/../model/Pedido.php';

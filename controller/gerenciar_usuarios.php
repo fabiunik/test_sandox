@@ -8,11 +8,10 @@ use PHPMailer\PHPMailer\Exception as PHPMailerException;
 session_start();
 
 // Carrega o autoloader do Composer no início para garantir que o PHPMailer esteja disponível
-$autoloadPath = dirname(__DIR__) . '/vendor/autoload.php';
-if (!file_exists($autoloadPath)) {
-    $autoloadPath = '/app/vendor/autoload.php'; // Fallback para ambiente de produção (Railway)
+$autoloadPath = __DIR__ . '/../vendor/autoload.php';
+if (file_exists($autoloadPath)) {
+    require_once $autoloadPath;
 }
-if (file_exists($autoloadPath)) require_once $autoloadPath;
 
 require_once __DIR__ . '/conectarBD.php';
 require_once __DIR__ . '/../model/Usuario.php';
@@ -112,10 +111,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $token = $usuario->gerarTokenRecuperacao($dadosUsuario['id']);
                 
                 // --- INÍCIO: Substituição do error_log pelo envio real de e-mail com PHPMailer ---
-                if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-                    $mail = new PHPMailer(true); // Habilita exceções para tratamento de erros
+                try {
+                    if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+                        $mail = new PHPMailer(true); // Habilita exceções para tratamento de erros
 
-                    try {
                         // Configurações do Servidor SMTP (Mailtrap)
                         $mail->isSMTP();
                         $mail->Host       = getenv('MAILTRAP_HOST');
@@ -145,13 +144,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         $mail->send();
                         error_log("Email de recuperação enviado com sucesso para $email.");
-                    } catch (Exception $e) {
-                        error_log("Erro PHPMailer ao enviar para $email: " . $e->getMessage() . " | Info: " . $mail->ErrorInfo);
+                    } else {
+                        error_log("Erro: PHPMailer não carregado. Autoload verificado em: " . realpath($autoloadPath));
+                        // Fallback para o log caso o e-mail não possa ser enviado
+                        error_log("Link de recuperação (Simulação): https://testsandox-staging.up.railway.app/view/redefinir_senha.php?token=$token");
                     }
-                } else {
-                    error_log("Erro: PHPMailer não carregado em $autoloadPath. Verifique se o 'composer install' foi executado no deploy.");
-                    // Fallback para o log caso o e-mail não possa ser enviado
-                    error_log("Link de recuperação (Simulação): https://testsandox-staging.up.railway.app/view/redefinir_senha.php?token=$token");
+                } catch (Exception $e) {
+                    error_log("Erro PHPMailer ao enviar para $email: " . $e->getMessage() . " | Info: " . ($mail->ErrorInfo ?? 'N/A'));
                 }
             } else {
                 error_log("Tentativa de recuperação falhou: e-mail $email não encontrado no banco.");

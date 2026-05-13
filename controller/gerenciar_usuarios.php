@@ -16,11 +16,17 @@ $tentativasAutoload = [
 
 $autoloadPath = null;
 foreach ($tentativasAutoload as $caminho) {
+    error_log("Tentando carregar autoload em: " . $caminho);
     if (file_exists($caminho)) {
         require_once $caminho;
         $autoloadPath = $caminho;
+        error_log("Sucesso! Autoload carregado de: " . $caminho);
         break;
     }
+}
+
+if (!$autoloadPath) {
+    error_log("CRÍTICO: Nenhum arquivo vendor/autoload.php foi encontrado. Verifique a estrutura de pastas no Railway.");
 }
 
 require_once __DIR__ . '/conectarBD.php';
@@ -155,7 +161,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $mail->send();
                         error_log("Email de recuperação enviado com sucesso para $email.");
                     } else {
-                        $caminhoTentado = $autoloadPath ?: __DIR__ . '/../vendor/autoload.php';
+                        $caminhoTentado = $autoloadPath ?: "NENHUM";
+                        $vendorExiste = is_dir(dirname($caminhoTentado)) ? "SIM" : "NÃO";
+                        
+                        error_log("Erro: Classe PHPMailer não encontrada.");
+                        error_log("Autoload usado: " . $caminhoTentado);
+                        error_log("Pasta vendor existe: " . $vendorExiste);
+                        error_log("PHP Executando em: " . getcwd());
+                        error_log("Estrutura da pasta atual: " . implode(', ', scandir(getcwd())));
+                        
                         error_log("Erro: PHPMailer não carregado. Autoload não encontrado em: " . $caminhoTentado);
                         // Fallback para o log caso o e-mail não possa ser enviado
                         error_log("Link de recuperação (Simulação): https://testsandox-staging.up.railway.app/view/redefinir_senha.php?token=$token");

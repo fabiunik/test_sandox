@@ -8,20 +8,11 @@ use PHPMailer\PHPMailer\Exception as PHPMailerException;
 session_start();
 
 // Carrega o autoloader do Composer no início para garantir que o PHPMailer esteja disponível
-$tentativasAutoload = [
-    __DIR__ . '/../vendor/autoload.php',           // Caminho relativo local
-    dirname(__DIR__, 2) . '/vendor/autoload.php',  // Subindo dois níveis
-    '/var/www/html/vendor/autoload.php',           // Caminho absoluto no Railway
-    '/app/vendor/autoload.php'                     // Fallback Railway
-];
-
-$autoloadPath = null;
-foreach ($tentativasAutoload as $caminho) {
-    if (file_exists($caminho)) {
-        require_once $caminho;
-        $autoloadPath = $caminho;
-        break;
-    }
+$autoloadPath = __DIR__ . '/../vendor/autoload.php';
+if (file_exists($autoloadPath)) {
+    require_once $autoloadPath;
+} else {
+    error_log("ERRO: Autoload não encontrado em: " . $autoloadPath);
 }
 
 require_once __DIR__ . '/conectarBD.php';
@@ -156,10 +147,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $mail->send();
                         error_log("Email de recuperação enviado com sucesso para $email.");
                     } else {
-                        error_log("ERRO CRÍTICO: PHPMailer não carregado.");
-                        error_log("Caminhos testados: " . implode(' | ', $tentativasAutoload));
-                        error_log("Diretório atual: " . __DIR__);
-                        error_log("Vendor existe em " . __DIR__ . "/../vendor? " . (is_dir(__DIR__ . '/../vendor') ? 'SIM' : 'NÃO'));
+                        error_log("ERRO CRÍTICO: Classe PHPMailer não encontrada.");
+                        error_log("Verifique se o 'composer install' foi executado corretamente e se a pasta vendor existe em: " . dirname($autoloadPath));
 
                         // Fallback para o log caso o e-mail não possa ser enviado
                         error_log("Link de recuperação (Simulação): https://testsandox-staging.up.railway.app/view/redefinir_senha.php?token=$token");
@@ -224,7 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
 
-            $hash = password_hash($senha_nova, PASSWORD_DEFAULT);
+            $hash = password_hash($senha_nova, PASSWORD_ARGON2ID);
             $usuario->atualizarSenhaPerfil($usuario_id, $hash);
 
             $_SESSION['success'] = "Senha alterada com sucesso!";
@@ -233,10 +222,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         /** Sair */
         elseif ($acao === 'logout') {
-                    session_start();
-                    session_destroy();
-                    header("Location: ../view/login.php");
-                    exit;
+            session_destroy();
+            header("Location: ../view/login.php");
+            exit;
         } else {
             throw new Exception("Ação inválida.");
         }

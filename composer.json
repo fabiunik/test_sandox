@@ -7,6 +7,6 @@
         "ext-openssl": "*",
         "ext-curl": "*",
         "ext-mbstring": "*",
-        "phpmailer/phpmailer": "^6.9"
+        "phpmailer/phpmailer": "^7.0"
     }
 }

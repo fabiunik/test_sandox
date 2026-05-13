@@ -4,6 +4,13 @@ ob_start();
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
+// Carrega o autoloader do Composer para que o PHPMailer e outras libs funcionem
+$autoloadPath = dirname(__DIR__) . '/vendor/autoload.php';
+if (!file_exists($autoloadPath)) {
+    $autoloadPath = '/app/vendor/autoload.php'; // Suporte para o ambiente Railway
+}
+if (file_exists($autoloadPath)) require_once $autoloadPath;
+
 require_once __DIR__ . '/conectarBD.php';
 require_once __DIR__ . '/../model/Pedido.php';
 require_once __DIR__ . '/../model/Pagamento.php';
@@ -139,23 +146,12 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
             $stmtInfo->execute([$pedido_id]);
             $detalhesNotificacao = $stmtInfo->fetchAll(PDO::FETCH_ASSOC);
 
-            // Localização do autoloader na raiz do projeto
-            $autoloadPath = dirname(__DIR__) . '/vendor/autoload.php';
-            
-            // Fallback para o caminho padrão do Railway
-            if (!file_exists($autoloadPath)) {
-                if (file_exists('/app/vendor/autoload.php')) {
-                    $autoloadPath = '/app/vendor/autoload.php';
-                }
-            }
-
-            if ($autoloadPath) {
-                require_once $autoloadPath;
-
+            // Com o autoloader carregado no topo, apenas verificamos se a classe está disponível
+            if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
                 $smtp_host = getenv('MAILTRAP_HOST');
-                if (!$smtp_host) {
+                if (empty($smtp_host)) {
                     error_log("Aviso: Variáveis MAILTRAP_HOST não configuradas. Pulando envio de e-mail.");
-                } elseif (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+                } else {
                     $mail = new PHPMailer(true);
                     foreach ($detalhesNotificacao as $info) {
                         try {
@@ -199,7 +195,7 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
                     }
                 }
             } else {
-                error_log("Erro: vendor/autoload.php não encontrado em $autoloadPath. Os e-mails de confirmação não foram enviados.");
+                error_log("Erro: PHPMailer não carregado. Verifique se o 'composer install' foi executado no deploy.");
             }
         }
     } catch (\Throwable $e) {

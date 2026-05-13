@@ -5,8 +5,14 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
-// Carrega o autoloader do Composer (necessário para o PHPMailer)
 session_start();
+
+// Carrega o autoloader do Composer no início para garantir que o PHPMailer esteja disponível
+$autoloadPath = dirname(__DIR__) . '/vendor/autoload.php';
+if (!file_exists($autoloadPath)) {
+    $autoloadPath = '/app/vendor/autoload.php'; // Fallback para ambiente de produção (Railway)
+}
+if (file_exists($autoloadPath)) require_once $autoloadPath;
 
 require_once __DIR__ . '/conectarBD.php';
 require_once __DIR__ . '/../model/Usuario.php';
@@ -104,18 +110,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($dadosUsuario) {
                 $token = $usuario->gerarTokenRecuperacao($dadosUsuario['id']);
                 
-                // Localização do autoloader na raiz do projeto
-                $autoloadPath = dirname(__DIR__) . '/vendor/autoload.php';
-                
-                // Fallback para o caminho padrão do Railway (/app)
-                if (!file_exists($autoloadPath)) {
-                    $autoloadPath = '/app/vendor/autoload.php';
-                }
-
-                if (file_exists($autoloadPath)) {
-                    require_once $autoloadPath;
-                }
-
                 // --- INÍCIO: Substituição do error_log pelo envio real de e-mail com PHPMailer ---
                 if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
                     $mail = new PHPMailer(true); // Habilita exceções para tratamento de erros

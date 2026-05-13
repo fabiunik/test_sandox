@@ -1,0 +1,11 @@
+# nixpacks.toml na raiz do repositório
+
+[phases.setup]
+nixPkgs = ["php82", "php82Packages.composer", "apache"]
+
+[phases.install]
+# Força a instalação do composer dentro da pasta onde o projeto realmente está
+cmds = ["cd test_sandox/test_sandox && composer install"]
+
+[variables]
+NIXPACKS_PHP_ROOT_DIR = "test_sandox/test_sandox"

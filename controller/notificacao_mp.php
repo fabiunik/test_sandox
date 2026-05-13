@@ -13,17 +13,11 @@ $tentativasAutoload = [
 
 $autoloadPath = null;
 foreach ($tentativasAutoload as $caminho) {
-    error_log("MP Notificação: Tentando autoload em " . $caminho);
     if (file_exists($caminho)) {
         require_once $caminho;
         $autoloadPath = $caminho;
-        error_log("MP Notificação: Autoload carregado com sucesso.");
         break;
     }
-}
-
-if (!$autoloadPath) {
-    error_log("MP Notificação ERRO: Arquivo autoload.php não encontrado.");
 }
 
 require_once __DIR__ . '/conectarBD.php';

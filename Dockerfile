@@ -26,6 +26,9 @@ RUN chown -R www-data:www-data /var/www/html \
     && mkdir -p /var/www/html/uploads \
     && chmod -R 775 /var/www/html/uploads
 
+#instalar o Composer
+RUN composer install --no-dev --optimize-autoloader
+    
 # Define a porta 80 como padrão caso o Railway não envie a variável $PORT
 ENV PORT=80
 

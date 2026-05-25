@@ -153,8 +153,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         // Fallback para o log caso o e-mail não possa ser enviado
                         error_log("Link de recuperação (Simulação): https://testsandox-staging.up.railway.app/view/redefinir_senha.php?token=$token");
                     }
-                } catch (Exception $e) {
-                    error_log("Erro PHPMailer ao enviar para $email: " . $e->getMessage() . " | Info: " . ($mail->ErrorInfo ?? 'N/A'));
+                } catch (\Throwable $e) {
+                    error_log("Erro no processamento do PHPMailer para $email: " . $e->getMessage());
                 }
             } else {
                 error_log("Tentativa de recuperação falhou: e-mail $email não encontrado no banco.");
@@ -228,7 +228,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             throw new Exception("Ação inválida.");
         }
-    } catch (Exception $e) {
+    } catch (\Throwable $e) {
+        error_log("ERRO CRÍTICO em gerenciar_usuarios.php: " . $e->getMessage() . " em " . $e->getFile() . " na linha " . $e->getLine());
         $_SESSION['error'] = $e->getMessage();
         header("Location: ../view/login.php");
         exit;

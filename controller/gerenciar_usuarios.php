@@ -132,10 +132,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         // FORÇAR IPv4: Resolve o nome do host para IP para evitar lentidão de DNS/IPv6
                         $mail->Host       = gethostbyname($rawHost);
-                        $mail->SMTPAuth   = true;
+                        $encryption       = getenv('MAILTRAP_ENCRYPTION');
+                        $mail->SMTPAuth   = ($encryption !== 'none'); 
                         $mail->Username   = getenv('MAILTRAP_USERNAME');
                         $mail->Password   = getenv('MAILTRAP_PASSWORD');
-                        $encryption       = getenv('MAILTRAP_ENCRYPTION');
                         $mail->SMTPSecure = ($encryption === 'none') ? '' : ($encryption ?: PHPMailer::ENCRYPTION_STARTTLS);
                         $mail->Port       = (int)$rawPort;
                         $mail->Timeout    = 30;

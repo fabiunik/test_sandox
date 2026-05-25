@@ -156,12 +156,11 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
                         try {
                             // Configurações do Servidor SMTP
                             $mail->isSMTP();
-                            // Força resolução IPv4 para evitar lentidão de DNS em ambiente de container
-                            $mail->Host       = gethostbyname($smtp_host ?: 'sandbox.smtp.mailtrap.io');
-                            $mail->SMTPAuth   = true;
+                            $mail->Host       = $smtp_host;
+                            $encryption       = getenv('MAILTRAP_ENCRYPTION');
+                            $mail->SMTPAuth   = ($encryption !== 'none');
                             $mail->Username   = getenv('MAILTRAP_USERNAME');
                             $mail->Password   = getenv('MAILTRAP_PASSWORD');
-                            $encryption       = getenv('MAILTRAP_ENCRYPTION');
                             $mail->SMTPSecure = ($encryption === 'none') ? '' : ($encryption ?: PHPMailer::ENCRYPTION_STARTTLS);
                             $mail->Port       = (int)(getenv('MAILTRAP_PORT') ?: 2525);
                             $mail->Timeout    = 30;

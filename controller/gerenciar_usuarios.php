@@ -130,8 +130,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $mail->Password   = getenv('MAILTRAP_PASSWORD');
                         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; 
                         $mail->Port       = getenv('MAILTRAP_PORT') ?: 2525;
-                        $mail->Timeout    = 10; // Timeout de 10 segundos para a conexão
-                        $mail->SMTPConnectTimeout = 5; // Timeout de 5 segundos para o handshake
+                        $mail->Timeout    = 10;
+                        $mail->SMTPOptions = [
+                            'ssl' => [
+                                'verify_peer' => false,
+                                'verify_peer_name' => false,
+                                'allow_self_signed' => true
+                            ]
+                        ];
                         $mail->CharSet    = 'UTF-8';
 
                         if (empty($mail->Host) || empty($mail->Username)) {

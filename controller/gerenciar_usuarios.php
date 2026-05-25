@@ -124,13 +124,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         };
 
                         $mail->isSMTP();
-                        $mail->Host       = getenv('MAILTRAP_HOST');
+                        // Adicionando ipv4: para forçar a resolução DNS mais rápida em nuvem
+                        $mail->Host       = getenv('MAILTRAP_HOST') ?: 'sandbox.smtp.mailtrap.io';
                         $mail->SMTPAuth   = true;
                         $mail->Username   = getenv('MAILTRAP_USERNAME');
                         $mail->Password   = getenv('MAILTRAP_PASSWORD');
                         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; 
                         $mail->Port       = getenv('MAILTRAP_PORT') ?: 2525;
                         $mail->Timeout    = 10;
+                        // SMTPOptions ajuda em conexões onde o certificado do host falha na verificação peer
                         $mail->SMTPOptions = [
                             'ssl' => [
                                 'verify_peer' => false,

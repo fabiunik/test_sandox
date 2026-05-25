@@ -118,6 +118,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $mail = new PHPMailer(true); // Habilita exceções para tratamento de erros
 
                         // Configurações do Servidor SMTP (Mailtrap)
+                        $mail->SMTPDebug = SMTP::DEBUG_SERVER; // Ativa debug detalhado
+                        $mail->Debugoutput = function($str, $level) {
+                            error_log("SMTP DEBUG: $str");
+                        };
+
                         $mail->isSMTP();
                         $mail->Host       = getenv('MAILTRAP_HOST');
                         $mail->SMTPAuth   = true;
@@ -125,6 +130,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $mail->Password   = getenv('MAILTRAP_PASSWORD');
                         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; 
                         $mail->Port       = getenv('MAILTRAP_PORT') ?: 2525;
+                        $mail->Timeout    = 10; // Timeout de 10 segundos para a conexão
+                        $mail->SMTPConnectTimeout = 5; // Timeout de 5 segundos para o handshake
                         $mail->CharSet    = 'UTF-8';
 
                         if (empty($mail->Host) || empty($mail->Username)) {

@@ -26,6 +26,8 @@ RUN chown -R www-data:www-data /var/www/html \
     && mkdir -p /var/www/html/uploads \
     && chmod -R 775 /var/www/html/uploads
 
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+    
 #instalar o Composer
 RUN composer install --no-dev --optimize-autoloader
     

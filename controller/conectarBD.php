@@ -3,6 +3,7 @@
 $caminhoEnv = dirname(__DIR__) . '/.env';
 
 if (file_exists($caminhoEnv)) {
+    error_log("AVISO: Arquivo .env detectado em: " . $caminhoEnv);
     $linhas = file($caminhoEnv, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($linhas as $linha) {
         if (strpos(trim($linha), '#') === 0) continue;

@@ -12,9 +12,12 @@ if (file_exists($caminhoEnv)) {
             $nome = trim($nome);
             $valor = trim($valor);
 
-            // Define nas globais para que fiquem disponíveis em todo o projeto
-            putenv("$nome=$valor");
-            $_ENV[$nome] = $valor;
+            // Define nas globais APENAS se a variável ainda não existir no ambiente
+            // Isso evita que o arquivo .env sobrescreva as variáveis do painel do Railway
+            if (getenv($nome) === false) {
+                putenv("$nome=$valor");
+                $_ENV[$nome] = $valor;
+            }
         }
     }
 }

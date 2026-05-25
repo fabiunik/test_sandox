@@ -162,6 +162,15 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
                             $mail->Password   = getenv('MAILTRAP_PASSWORD');
                             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                             $mail->Port       = getenv('MAILTRAP_PORT') ?: 2525;
+                            $mail->Timeout    = 10;
+                            // SMTPOptions ajuda em conexões onde o certificado do host falha na verificação peer no Railway
+                            $mail->SMTPOptions = [
+                                'ssl' => [
+                                    'verify_peer' => false,
+                                    'verify_peer_name' => false,
+                                    'allow_self_signed' => true
+                                ]
+                            ];
                             $mail->CharSet    = 'UTF-8';
 
                             // Remetente

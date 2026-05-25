@@ -126,17 +126,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $mail->isSMTP();
                         
                         // TESTE DE DIAGNÓSTICO: Logar exatamente o que o PHP está lendo
-                        $rawHost = getenv('MAILTRAP_HOST');
-                        $rawPort = getenv('MAILTRAP_PORT');
+                        $rawHost = getenv('MAILTRAP_HOST') ?: 'mailpit.railway.internal';
+                        $rawPort = getenv('MAILTRAP_PORT') ?: 1025;
                         error_log("DEBUG SMTP - Host: [" . var_export($rawHost, true) . "] | Port: [" . var_export($rawPort, true) . "]");
 
                         // FORÇAR IPv4: Resolve o nome do host para IP para evitar lentidão de DNS/IPv6
-                        $mail->Host       = gethostbyname($rawHost ?: 'sandbox.smtp.mailtrap.io');
+                        $mail->Host       = gethostbyname($rawHost);
                         $mail->SMTPAuth   = true;
                         $mail->Username   = getenv('MAILTRAP_USERNAME');
                         $mail->Password   = getenv('MAILTRAP_PASSWORD');
-                        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; 
-                        $mail->Port       = $rawPort ?: 2525;
+                        $encryption       = getenv('MAILTRAP_ENCRYPTION');
+                        $mail->SMTPSecure = ($encryption === 'none') ? '' : ($encryption ?: PHPMailer::ENCRYPTION_STARTTLS);
+                        $mail->Port       = (int)$rawPort;
                         $mail->Timeout    = 30;
                         // SMTPOptions ajuda em conexões onde o certificado do host falha na verificação peer
                         $mail->SMTPOptions = [

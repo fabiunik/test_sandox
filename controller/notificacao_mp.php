@@ -130,17 +130,17 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
 
         // 2. Se aprovado, atualiza o pedido e os agendamentos vinculados
         if ($status_mp === 'approved') {
-            // Verifica o status atual antes de processar para evitar disparos duplicados
-            $infoPedidoAtual = $pedidoModel->obterPorId($pedido_id);
-            if ($infoPedidoAtual && $infoPedidoAtual['status'] === 'pago') {
-                error_log("Pedido #$pedido_id já está processado. Encerrando notificação.");
+            // ATUALIZAÇÃO ATÔMICA: Tenta mudar para 'pago' apenas se ainda for 'pendente'
+            // Isso impede que múltiplas notificações simultâneas do MP disparem e-mails duplicados
+            $stmtCheck = $pdo->prepare("UPDATE pedido SET status = 'pago' WHERE id = ? AND status = 'pendente'");
+            $stmtCheck->execute([$pedido_id]);
+
+            if ($stmtCheck->rowCount() === 0) {
+                error_log("Pedido #$pedido_id já processado ou em estado que não permite atualização. Encerrando disparos.");
                 http_response_code(200);
                 exit;
             }
 
-            $pedidoModel->atualizarStatus($pedido_id, 'pago');
-            error_log("Status do Pedido #$pedido_id atualizado para 'pago' no banco de dados.");
-            
             // Usamos 'pago' também para agendamento para evitar erro de tamanho de coluna (Data truncated)
             // e garantir consistência com a tabela pedido.
             $pdo->prepare("UPDATE agendamento SET status = 'pago' WHERE pedido_id = ?")
@@ -168,33 +168,30 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
                     error_log("Aviso: Variáveis MAILTRAP_HOST não configuradas. Pulando envio de e-mail.");
                 } else {
                     $mail = new PHPMailer(true);
+                    
+                    // Configurações do Servidor SMTP (feitas uma única vez antes do loop para melhor performance)
+                    $mail->isSMTP();
+                    $mail->Host       = gethostbyname($smtp_host ?: 'mailpit.railway.internal');
+                    $encryption       = getenv('MAILTRAP_ENCRYPTION');
+                    $mail->SMTPAuth   = ($encryption !== 'none');
+                    $mail->Username   = getenv('MAILTRAP_USERNAME');
+                    $mail->Password   = getenv('MAILTRAP_PASSWORD');
+                    $mail->SMTPSecure = ($encryption === 'none') ? '' : PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port       = (int)(getenv('MAILTRAP_PORT') ?: 2525);
+                    $mail->Timeout    = 30;
+                    $mail->SMTPOptions = [
+                        'ssl' => [
+                            'verify_peer' => false,
+                            'verify_peer_name' => false,
+                            'allow_self_signed' => true
+                        ]
+                    ];
+                    $mail->CharSet    = 'UTF-8';
+                    $mail->setFrom(getenv('MAILTRAP_FROM_EMAIL') ?: 'contato@teste.com', getenv('MAILTRAP_FROM_NAME') ?: 'Aqui tem Terapia');
+
                     foreach ($detalhesNotificacao as $info) {
                         try {
-                            // Limpa destinatários de iterações anteriores para evitar acúmulo
                             $mail->clearAddresses();
-                            
-                            // Configurações do Servidor SMTP
-                            $mail->isSMTP();
-                            $mail->Host       = gethostbyname($smtp_host ?: 'mailpit.railway.internal');
-                            $encryption       = getenv('MAILTRAP_ENCRYPTION');
-                            $mail->SMTPAuth   = ($encryption !== 'none');
-                            $mail->Username   = getenv('MAILTRAP_USERNAME');
-                            $mail->Password   = getenv('MAILTRAP_PASSWORD');
-                            $mail->SMTPSecure = ($encryption === 'none') ? '' : ($encryption ?: PHPMailer::ENCRYPTION_STARTTLS);
-                            $mail->Port       = (int)(getenv('MAILTRAP_PORT') ?: 2525);
-                            $mail->Timeout    = 30;
-                            // SMTPOptions ajuda em conexões onde o certificado do host falha na verificação peer no Railway
-                            $mail->SMTPOptions = [
-                                'ssl' => [
-                                    'verify_peer' => false,
-                                    'verify_peer_name' => false,
-                                    'allow_self_signed' => true
-                                ]
-                            ];
-                            $mail->CharSet    = 'UTF-8';
-
-                            // Remetente
-                            $mail->setFrom(getenv('MAILTRAP_FROM_EMAIL') ?: 'contato@teste.com', getenv('MAILTRAP_FROM_NAME') ?: 'Aqui tem Terapia');
 
                             // --- E-mail para o Cliente ---
                             $mail->addAddress($info['cliente_email'], $info['cliente_nome']);

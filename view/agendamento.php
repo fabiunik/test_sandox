@@ -15,14 +15,21 @@ $itens = $itemModel->listar();
 $mensagem = null;
 $erro = null;
 
+// Recuperar dados pendentes da sessão se o usuário acabou de logar
+$pending = $_SESSION['pending_agendamento'] ?? null;
+
 // Obter valores pré-selecionados da URL, se existirem
-$pre_selected_item_id = isset($_GET['item_id']) ? intval($_GET['item_id']) : 0;
-$pre_selected_terapeuta_id = isset($_GET['terapeuta_id']) ? intval($_GET['terapeuta_id']) : 0;
+$pre_selected_item_id = isset($_GET['item_id']) ? intval($_GET['item_id']) : ($pending ? intval($pending['item_id']) : 0);
+$pre_selected_terapeuta_id = isset($_GET['terapeuta_id']) ? intval($_GET['terapeuta_id']) : ($pending ? intval($pending['terapeuta_id']) : 0);
+$pre_selected_data = $pending['data'] ?? '';
+$pre_selected_horario = $pending['horario'] ?? '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usuario_id = $_SESSION['usuario_id'] ?? 0;
     if ($usuario_id == 0) {
-        $erro = "Você precisa estar logado para agendar.";
+        $_SESSION['pending_agendamento'] = $_POST;
+        header("Location: login.php");
+        exit;
     } else {
         $terapeuta_id = $_POST['terapeuta_id'] ?? 0;
         $item_id = $_POST['item_id'] ?? 0;
@@ -45,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // No futuro, se quiser 'carrinho', você verificaria se já existe um pedido aberto na sessão
             // Por enquanto, criamos o agendamento e o pedidos.php criará o Pedido 'guarda-chuva'
             $id = $agendamentoModel->criar($usuario_id, $terapeuta_id, $item_id, $data, $horario, $duracao, $preco);
-            
+            unset($_SESSION['pending_agendamento']); // Limpa o agendamento pendente após sucesso
             header("Location: pedidos.php?agendamento_id=" . $id);
             exit;
         } catch (Exception $e) {
@@ -77,6 +84,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       const selectedTimeInput = document.getElementById('horario');
       const selectedDateText = document.getElementById('selectedDate');
       const selectedTimeText = document.getElementById('selectedTime');
+      
+      const targetData = '<?php echo $pre_selected_data; ?>';
+      const targetHorario = '<?php echo $pre_selected_horario; ?>';
 
       list.innerHTML = '';
       selectedDateInput.value = '';
@@ -122,6 +132,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             document.querySelectorAll('.slot-btn').forEach(el => el.classList.remove('selected'));
             button.classList.add('selected');
           });
+
+          // Auto-selecionar se vier da sessão
+          if (data === targetData && horario === targetHorario) {
+              button.classList.add('selected');
+              selectedDateInput.value = data;
+              selectedTimeInput.value = horario;
+              selectedDateText.textContent = formatDateLabel(data);
+              selectedTimeText.textContent = horario;
+          }
           groupGrid.appendChild(button);
         });
 

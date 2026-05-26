@@ -126,6 +126,7 @@ $total_usuarios_comuns = count(array_filter($usuarios, fn($u) => $u['tipo'] === 
                         <th>E-mail</th>
                         <th>Telefone</th>
                         <th>Tipo</th>
+                        <th>Status</th>
                         <th class="text-center">Ações</th>
                     </tr>
                 </thead>
@@ -147,11 +148,26 @@ $total_usuarios_comuns = count(array_filter($usuarios, fn($u) => $u['tipo'] === 
                                         <span class="badge badge-user">Usuário</span>
                                     <?php endif; ?>
                                 </td>
+                                <td>
+                                    <span class="status-badge <?php echo $usuario['status'] === 'ativo' ? 'status-confirmado' : 'status-pendente'; ?>">
+                                        <?php echo ucfirst($usuario['status']); ?>
+                                    </span>
+                                </td>
                                 <td class="text-center">
-                                    <button class="btn-action btn-edit"
-                                            onclick="openEditModal(<?php echo htmlspecialchars(json_encode($usuario)); ?>)">
-                                        ✏️ Editar
-                                    </button>
+                                    <div style="display:flex; gap:5px;">
+                                        <button class="btn-action btn-edit" onclick="openEditModal(<?php echo htmlspecialchars(json_encode($usuario)); ?>)">✏️ Cargo</button>
+                                        <form action="../controller/gerenciar_usuarios.php" method="POST" style="display:inline;">
+                                            <input type="hidden" name="acao" value="alterar_status">
+                                            <input type="hidden" name="usuario_id" value="<?php echo $usuario['id']; ?>">
+                                            <?php if($usuario['status'] === 'ativo'): ?>
+                                                <input type="hidden" name="status" value="inativo">
+                                                <button type="submit" class="btn-action" style="color:#dc3545; border-color:#f5c6cb;">🚫 Inativar</button>
+                                            <?php else: ?>
+                                                <input type="hidden" name="status" value="ativo">
+                                                <button type="submit" class="btn-action" style="color:#28a745; border-color:#c3e6cb;">✅ Ativar</button>
+                                            <?php endif; ?>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

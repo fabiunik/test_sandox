@@ -23,6 +23,19 @@ $agendamentoModel = new Agendamento($pdo);
 
 $financeiro = $pedidoModel->relatorioFinanceiro($data_inicio, $data_fim, ($tipo === 'terapeuta' ? $usuario_id : null));
 $agendamentos = $agendamentoModel->listarPorPeriodo($data_inicio, $data_fim, ($tipo === 'terapeuta' ? $usuario_id : null));
+
+// Lógica de Paginação Manual para Arrays
+$perPage = 5;
+$pageF = isset($_GET['pageF']) ? (int)$_GET['pageF'] : 1;
+$pageA = isset($_GET['pageA']) ? (int)$_GET['pageA'] : 1;
+
+$totalF = count($financeiro);
+$totalA = count($agendamentos);
+
+$financeiroPaginado = array_slice($financeiro, ($pageF - 1) * $perPage, $perPage);
+$agendamentosPaginados = array_slice($agendamentos, ($pageA - 1) * $perPage, $perPage);
+$totalPaginasF = ceil($totalF / $perPage);
+$totalPaginasA = ceil($totalA / $perPage);
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -40,6 +53,9 @@ $agendamentos = $agendamentoModel->listarPorPeriodo($data_inicio, $data_fim, ($t
         th, td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
         .filter-bar { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd; display: flex; gap: 15px; align-items: flex-end; }
         .rating-stars { color: #f59e0b; }
+        .pagination-simple { margin-top: 15px; display: flex; gap: 10px; justify-content: center; }
+        .pagination-simple a { text-decoration: none; padding: 5px 10px; border: 1px solid #ddd; border-radius: 4px; color: #333; font-size: 0.9rem; }
+        .pagination-simple span { font-size: 0.9rem; align-self: center; }
     </style>
 </head>
 <body>
@@ -78,7 +94,7 @@ $agendamentos = $agendamentoModel->listarPorPeriodo($data_inicio, $data_fim, ($t
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($financeiro as $p): ?>
+                                <?php foreach ($financeiroPaginado as $p): ?>
                                 <tr>
                                     <td>#<?php echo $p['id']; ?></td>
                                     <td><?php echo htmlspecialchars($p['cliente_nome']); ?></td>
@@ -88,6 +104,17 @@ $agendamentos = $agendamentoModel->listarPorPeriodo($data_inicio, $data_fim, ($t
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
+                        <?php if ($totalPaginasF > 1): ?>
+                            <div class="pagination-simple">
+                                <?php if ($pageF > 1): ?>
+                                    <a href="?data_inicio=<?php echo $data_inicio; ?>&data_fim=<?php echo $data_fim; ?>&pageF=<?php echo $pageF - 1; ?>&pageA=<?php echo $pageA; ?>">« Ant</a>
+                                <?php endif; ?>
+                                <span>Pág <?php echo $pageF; ?> de <?php echo $totalPaginasF; ?></span>
+                                <?php if ($pageF < $totalPaginasF): ?>
+                                    <a href="?data_inicio=<?php echo $data_inicio; ?>&data_fim=<?php echo $data_fim; ?>&pageF=<?php echo $pageF + 1; ?>&pageA=<?php echo $pageA; ?>">Próx »</a>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Relatório de Agendamentos -->
@@ -104,7 +131,7 @@ $agendamentos = $agendamentoModel->listarPorPeriodo($data_inicio, $data_fim, ($t
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($agendamentos as $ag): ?>
+                                <?php foreach ($agendamentosPaginados as $ag): ?>
                                 <tr>
                                     <td>
                                         <?php echo date('d/m/Y', strtotime($ag['data'])); ?>
@@ -129,6 +156,17 @@ $agendamentos = $agendamentoModel->listarPorPeriodo($data_inicio, $data_fim, ($t
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
+                        <?php if ($totalPaginasA > 1): ?>
+                            <div class="pagination-simple">
+                                <?php if ($pageA > 1): ?>
+                                    <a href="?data_inicio=<?php echo $data_inicio; ?>&data_fim=<?php echo $data_fim; ?>&pageA=<?php echo $pageA - 1; ?>&pageF=<?php echo $pageF; ?>">« Ant</a>
+                                <?php endif; ?>
+                                <span>Pág <?php echo $pageA; ?> de <?php echo $totalPaginasA; ?></span>
+                                <?php if ($pageA < $totalPaginasA): ?>
+                                    <a href="?data_inicio=<?php echo $data_inicio; ?>&data_fim=<?php echo $data_fim; ?>&pageA=<?php echo $pageA + 1; ?>&pageF=<?php echo $pageF; ?>">Próx »</a>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                     <?php if ($tipo === 'administrador'): 

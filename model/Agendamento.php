@@ -121,7 +121,7 @@ class Agendamento {
             $sql .= " AND a.terapeuta_id = ?";
             $params[] = $terapeuta_id;
         }
-        $stmt = $this->con->prepare($sql . " ORDER BY a.data DESC");
+        $stmt = $this->con->prepare($sql . " ORDER BY a.data ASC, a.horario ASC");
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

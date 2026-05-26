@@ -10,6 +10,8 @@ class Usuario {
     private $email;
     private $senha;
     private $tipo; // 'usuario', 'terapeuta', 'administrador'
+    private $email_confirmado;
+    private $token_confirmacao;
     private $con;
 
     public function __construct($con) {
@@ -23,21 +25,37 @@ class Usuario {
             throw new Exception("E-mail inválido.");
         }
 
-        if (!preg_match('/^\d{3}\.\d{3}\.\d{3}\-\d{2}$/', $cpf)) {
+        // Validação de CPF (aceita com ou sem máscara)
+        $cpfLimpo = preg_replace('/\D/', '', $cpf);
+        if (strlen($cpfLimpo) !== 11) {
             throw new Exception("CPF inválido.");
         }
 
+        // Validação de Idade (Mínimo 18 anos)
+        $dataNascimento = new DateTime($dtnas);
+        $hoje = new DateTime();
+        $idade = $hoje->diff($dataNascimento)->y;
+        if ($idade < 18) {
+            throw new Exception("Você deve ter pelo menos 18 anos para se cadastrar.");
+        }
+
+        // Validação de Telefone
         $telefoneLimpo = preg_replace('/\D/', '', $telefone);
         if (strlen($telefoneLimpo) < 10 || strlen($telefoneLimpo) > 11) {
             throw new Exception("Telefone inválido.");
         }
 
         // --- 2. TRATAMENTO E CRIPTOGRAFIA ---
+        if (strlen($senha) < 8 || !preg_match('/[A-Za-z]/', $senha) || !preg_match('/[0-9]/', $senha)) {
+            throw new Exception("A senha deve ter pelo menos 8 caracteres e conter letras e números.");
+        }
+
         $nomeSanitizado = htmlspecialchars(strip_tags($nome));
         $senhaHash = password_hash($senha, PASSWORD_ARGON2ID);
+        $tokenConfirmacao = bin2hex(random_bytes(32));
 
         // Criptografando dados sensíveis
-        $cpfCripto = $this->criptografar($cpf);
+        $cpfCripto = $this->criptografar($cpfLimpo);
         $telCripto = $this->criptografar($telefoneLimpo);
 
         // --- 3. VERIFICAÇÃO DE DUPLICIDADE ---
@@ -48,14 +66,14 @@ class Usuario {
         }
 
         // --- 4. PERSISTÊNCIA ---
-        $stmt = $this->con->prepare("INSERT INTO usuario (nome, cpf, dtnas, telefone, email, senha, tipo)
-                                    VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $this->con->prepare("INSERT INTO usuario (nome, cpf, dtnas, telefone, email, senha, tipo, token_confirmacao, email_confirmado)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)");
 
-        if ($stmt->execute([$nomeSanitizado, $cpfCripto, $dtnas, $telCripto, $email, $senhaHash, $tipo])) {
+        if ($stmt->execute([$nomeSanitizado, $cpfCripto, $dtnas, $telCripto, $email, $senhaHash, $tipo, $tokenConfirmacao])) {
             $this->id = $this->con->lastInsertId();
             $this->nome = $nomeSanitizado;
             $this->email = $email;
-            return $this->id;
+            return $tokenConfirmacao;
         } else {
             throw new Exception("Erro ao criar usuário.");
         }
@@ -88,15 +106,27 @@ class Usuario {
         return $resultado ?: ''; // Retorna string vazia se falhar (ex: chave incompatível)
     }
 
+    public function confirmarEmail($token) {
+        $stmt = $this->con->prepare("UPDATE usuario SET email_confirmado = 1, token_confirmacao = NULL WHERE token_confirmacao = ?");
+        $stmt->execute([$token]);
+        return $stmt->rowCount() > 0;
+    }
+
     // Login
     public function login($email, $senha) {
         $email = filter_var($email, FILTER_SANITIZE_EMAIL);
 
-        $stmt = $this->con->prepare("SELECT id, senha, tipo, nome FROM usuario WHERE email = ?");
+        $stmt = $this->con->prepare("SELECT id, senha, tipo, nome, email_confirmado, status FROM usuario WHERE email = ?");
         $stmt->execute([$email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if($user && password_verify($senha, $user['senha'])) {
+            if ($user['status'] === 'inativo') {
+                throw new Exception("Sua conta está inativa e o acesso foi bloqueado.");
+            }
+            if (!$user['email_confirmado']) {
+                throw new Exception("Por favor, confirme seu e-mail antes de acessar o sistema.");
+            }
             $_SESSION['usuario_id'] = $user['id'];
             $_SESSION['tipo'] = $user['tipo'];
             $_SESSION['email'] = $email;
@@ -174,6 +204,9 @@ class Usuario {
         $stmt = $this->con->prepare("SELECT * FROM usuario WHERE email = ?");
         $stmt->execute([$email]);
         $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Se o usuário estiver inativo, não permite recuperação de senha
+        if ($usuario && $usuario['status'] === 'inativo') return null;
         return $usuario;
     }
 
@@ -241,6 +274,15 @@ class Usuario {
         } else {
             throw new Exception("Erro ao atualizar tipo.");
         }
+    }
+
+    // Alternar status (apenas admin)
+    public function atualizarStatus($usuario_id, $novo_status) {
+        if(!$this->ehAdministrador()) {
+            throw new Exception("Permissão negada!");
+        }
+        $stmt = $this->con->prepare("UPDATE usuario SET status = ? WHERE id = ?");
+        return $stmt->execute([$novo_status, $usuario_id]);
     }
 
     // Deletar usuário

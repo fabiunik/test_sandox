@@ -9,42 +9,34 @@ $pagina_atual = basename($_SERVER['PHP_SELF']);
 // Lógica de links baseada no tipo de usuário
 $usuario_logado = isset($_SESSION['usuario_id']);
 $tipo_usuario = isset($_SESSION['tipo']) ? trim(strtolower($_SESSION['tipo'])) : '';
+
+// Ajuste de caminhos dinâmicos
+$no_controller = (basename(dirname($_SERVER['PHP_SELF'])) === 'controller');
+$view_path = $no_controller ? '../view/' : '';
+$cont_path = $no_controller ? '' : '../controller/';
 ?>
 <header>
   <div class="logo">
-    <a href="tela_inicial.php" style="text-decoration: none; color: inherit;">Aqui tem Terapia!</a>
+    <a href="<?php echo $view_path; ?>tela_inicial.php" style="text-decoration: none; color: inherit;">Aqui tem Terapia!</a>
   </div>
   
   <nav>
     <!-- Barra de Pesquisa Global -->
-    <form action="../controller/pesquisa_global.php" method="GET" class="search-form-header">
+    <form action="<?php echo $cont_path; ?>pesquisa_global.php" method="GET" class="search-form-header">
       <input type="text" name="termo" placeholder="Buscar serviço ou profissional..." required>
       <button type="submit">🔍</button>
     </form>
 
     <!-- Links Públicos -->
-    <a class="cta" href="tela_inicial.php">Início</a>
-    <a class="cta" href="itens.php">Serviços</a>
-    <a class="cta" href="profissionais.php">Profissionais</a>
+    <a class="cta" href="<?php echo $view_path; ?>tela_inicial.php">Início</a>
+    <a class="cta" href="<?php echo $view_path; ?>itens.php">Serviços</a>
+    <a class="cta" href="<?php echo $view_path; ?>profissionais.php">Profissionais</a>
+    <a class="cta" href="<?php echo $view_path; ?>contato.php">Contato</a>
+    <a class="cta" href="<?php echo $view_path; ?>reportar_problemas.php">Reportar Problema</a>
 
-    <?php if ($usuario_logado): ?>
-        <!-- Links para Usuários Autenticados -->
-        <a class="cta" href="agendamento.php">Novo Agendamento</a>
-        <a class="cta" href="meus_agendamentos.php">Minha Agenda</a>
-        <a class="cta" href="perfil.php">Meu Perfil</a>
-        
-        <?php if ($tipo_usuario === 'administrador'): ?>
-            <a class="cta active-admin" href="painel_administrador.php">Painel Admin</a>
-            <a class="cta" href="relatorios.php">Relatórios</a>
-        <?php elseif ($tipo_usuario === 'terapeuta'): ?>
-            <a class="cta active-prof" href="perfil_profissional.php">Área Profissional</a>
-            <a class="cta" href="relatorios.php">Meus Relatórios</a>
-        <?php endif; ?>
-
-        <!-- Botão de Logout rápido (Opcional, já existe na sidebar) -->
-    <?php else: ?>
+    <?php if (!$usuario_logado): ?>
         <!-- Links para Visitantes -->
-        <a class="cta <?php echo ($pagina_atual === 'login.php') ? 'active' : ''; ?>" href="login.php">Entrar</a>
+        <a class="cta <?php echo ($pagina_atual === 'login.php') ? 'active' : ''; ?>" href="<?php echo $view_path; ?>login.php">Entrar</a>
     <?php endif; ?>
 
     <!-- Botão que abre a Sidebar (mantendo sua funcionalidade atual) -->

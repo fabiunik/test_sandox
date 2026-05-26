@@ -30,7 +30,7 @@ if (session_status() === PHP_SESSION_NONE) {
         </div>
       </aside>
     </main>
-    <footer>© 2025 Aqui tem Terapia! | Contato via WhatsApp</footer>
+    <footer>© <?php echo date('Y'); ?> Aqui tem Terapia! | Contato via WhatsApp</footer>
   </div>
 </body>
 </html>

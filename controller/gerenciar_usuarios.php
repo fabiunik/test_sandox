@@ -20,6 +20,17 @@ require_once __DIR__ . '/../model/Usuario.php';
 
 $usuario = new Usuario($pdo);
 
+// Tratamento de confirmação de e-mail via GET
+if (isset($_GET['acao']) && $_GET['acao'] === 'confirmar_email' && isset($_GET['token'])) {
+    if ($usuario->confirmarEmail($_GET['token'])) {
+        $_SESSION['success'] = "E-mail confirmado com sucesso! Agora você pode fazer login.";
+    } else {
+        $_SESSION['error'] = "Token de confirmação inválido ou já utilizado.";
+    }
+    header("Location: ../view/login.php");
+    exit;
+}
+
 // Processamento do formulário
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -32,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception("As senhas não conferem.");
             }
             // Cadastro público
-            $usuario->criar(
+            $tokenConfirmacao = $usuario->criar(
                 $_POST['nome'],
                 $_POST['cpf'],
                 $_POST['dtnas'],
@@ -41,10 +52,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_POST['senha'],
                 $_POST['tipo'] ?? 'usuario'
             );
-            $_SESSION['success'] = "Usuário cadastrado com sucesso!";
-            header("Location: ../view/sucesso_cadastro.php");
-            exit;
 
+            // Envio de E-mail de Confirmação
+            if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+                $mail = new PHPMailer(true);
+                $mail->isSMTP();
+                $mail->Host = gethostbyname(getenv('MAILTRAP_HOST') ?: 'mailpit.railway.internal');
+                $mail->SMTPAuth = (getenv('MAILTRAP_ENCRYPTION') !== 'none');
+                $mail->Username = getenv('MAILTRAP_USERNAME');
+                $mail->Password = getenv('MAILTRAP_PASSWORD');
+                $mail->SMTPSecure = (getenv('MAILTRAP_ENCRYPTION') === 'none') ? '' : PHPMailer::ENCRYPTION_STARTTLS;
+                $mail->Port = (int)(getenv('MAILTRAP_PORT') ?: 1025);
+                $mail->CharSet = 'UTF-8';
+
+                $mail->setFrom(getenv('MAILTRAP_FROM_EMAIL') ?: 'contato@teste.com', 'Aqui tem Terapia');
+                $mail->addAddress($_POST['email'], $_POST['nome']);
+
+                $mail->isHTML(true);
+                $mail->Subject = 'Confirme seu cadastro — Aqui tem Terapia';
+                $link = "https://testsandox-staging.up.railway.app/controller/gerenciar_usuarios.php?acao=confirmar_email&token=$tokenConfirmacao";
+                
+                $mail->Body = "<h1>Quase lá!</h1><p>Clique no link abaixo para confirmar seu e-mail e ativar sua conta:</p><a href='$link'>Ativar minha conta</a>";
+                $mail->send();
+            }
+
+            $_SESSION['success'] = "Cadastro realizado! Por favor, verifique seu e-mail para ativar sua conta.";
+            header("Location: ../view/login.php");
+            exit;
         } elseif ($acao === 'login') {
             // Login público
             $email = $_POST['email'];
@@ -52,7 +86,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($usuario->login($email, $senha)) {
                 $_SESSION['success'] = "Login realizado com sucesso!";
-                header("Location: ../view/perfil.php");
+                if (isset($_SESSION['pending_agendamento'])) {
+                    header("Location: ../view/agendamento.php");
+                } else {
+                    header("Location: ../view/perfil.php");
+                }
                 exit;
             } else {
                 throw new Exception("E-mail ou senha inválidos.");
@@ -102,6 +140,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header("Location: ../view/painel_administrador.php");
             exit;
 
+        } elseif ($acao === 'alterar_status') {
+            // Apenas administradores podem inativar usuários
+            if (!isset($_SESSION['usuario_id']) || $_SESSION['tipo'] !== 'administrador') {
+                throw new Exception("Acesso negado.");
+            }
+            $usuario->atualizarStatus(intval($_POST['usuario_id']), $_POST['status']);
+            $_SESSION['success'] = "Status do usuário atualizado!";
+            header("Location: ../view/painel_administrador.php");
+            exit;
+
             // Fluxo: recuperar senha 
         } elseif ($acao === 'recuperar_senha') {
             $email = $_POST['email'] ?? '';
@@ -117,20 +165,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
                         $mail = new PHPMailer(true); // Habilita exceções para tratamento de erros
 
-                        // Configurações do Servidor SMTP (Mailtrap)
-                        $mail->SMTPDebug = SMTP::DEBUG_SERVER; // Ativa debug detalhado
-                        $mail->Debugoutput = function($str, $level) {
-                            error_log("SMTP DEBUG: $str");
-                        };
+                        // Configurações do Servidor SMTP
+                        $mail->SMTPDebug = SMTP::DEBUG_OFF; // Desativa debug detalhado para produção
 
                         $mail->isSMTP();
                         
-                        // TESTE DE DIAGNÓSTICO: Logar exatamente o que o PHP está lendo
                         $rawHost = getenv('MAILTRAP_HOST') ?: 'mailpit.railway.internal';
                         $rawPort = getenv('MAILTRAP_PORT') ?: 1025;
-                        error_log("DEBUG SMTP - Host: [" . var_export($rawHost, true) . "] | Port: [" . var_export($rawPort, true) . "]");
-
-                        // FORÇAR IPv4: Resolve o nome do host para IP para evitar lentidão de DNS/IPv6
                         $mail->Host       = gethostbyname($rawHost);
                         $encryption       = getenv('MAILTRAP_ENCRYPTION');
                         $mail->SMTPAuth   = ($encryption !== 'none'); 

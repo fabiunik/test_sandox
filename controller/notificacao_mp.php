@@ -156,7 +156,7 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
                         try {
                             // Configurações do Servidor SMTP
                             $mail->isSMTP();
-                            $mail->Host       = $smtp_host;
+                            $mail->Host       = gethostbyname($smtp_host ?: 'mailpit.railway.internal');
                             $encryption       = getenv('MAILTRAP_ENCRYPTION');
                             $mail->SMTPAuth   = ($encryption !== 'none');
                             $mail->Username   = getenv('MAILTRAP_USERNAME');

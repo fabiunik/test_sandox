@@ -18,11 +18,12 @@ $erro = null;
 // Recuperar dados pendentes da sessão se o usuário acabou de logar
 $pending = $_SESSION['pending_agendamento'] ?? null;
 
-// Obter valores pré-selecionados da URL, se existirem
-$pre_selected_item_id = isset($_GET['item_id']) ? intval($_GET['item_id']) : ($pending ? intval($pending['item_id']) : 0);
-$pre_selected_terapeuta_id = isset($_GET['terapeuta_id']) ? intval($_GET['terapeuta_id']) : ($pending ? intval($pending['terapeuta_id']) : 0);
-$pre_selected_data = $pending['data'] ?? '';
-$pre_selected_horario = $pending['horario'] ?? '';
+// Lógica de preenchimento: prioriza POST (erro no envio), depois GET (link direto), depois Session (pós-login)
+$is_post = ($_SERVER['REQUEST_METHOD'] === 'POST');
+$pre_selected_item_id = $is_post ? intval($_POST['item_id'] ?? 0) : (isset($_GET['item_id']) ? intval($_GET['item_id']) : ($pending ? intval($pending['item_id']) : 0));
+$pre_selected_terapeuta_id = $is_post ? intval($_POST['terapeuta_id'] ?? 0) : (isset($_GET['terapeuta_id']) ? intval($_GET['terapeuta_id']) : ($pending ? intval($pending['terapeuta_id']) : 0));
+$pre_selected_data = $is_post ? ($_POST['data'] ?? '') : ($pending['data'] ?? '');
+$pre_selected_horario = $is_post ? ($_POST['horario'] ?? '') : ($pending['horario'] ?? '');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usuario_id = $_SESSION['usuario_id'] ?? 0;
@@ -218,16 +219,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               </select>
             </div>
 
-            <input type="hidden" id="data" name="data" value="">
-            <input type="hidden" id="horario" name="horario" value="">
+            <input type="hidden" id="data" name="data" value="<?php echo htmlspecialchars($pre_selected_data); ?>">
+            <input type="hidden" id="horario" name="horario" value="<?php echo htmlspecialchars($pre_selected_horario); ?>">
 
             <div class="input-group">
               <label>Data selecionada</label>
-              <div id="selectedDate" class="selected-time">Nenhuma data selecionada</div>
+              <div id="selectedDate" class="selected-time">
+                <?php 
+                  if (!empty($pre_selected_data)) {
+                    setlocale(LC_TIME, 'pt_BR', 'pt_BR.utf-8', 'portuguese');
+                    echo date('d/m/Y', strtotime($pre_selected_data));
+                  } else {
+                    echo "Nenhuma data selecionada";
+                  }
+                ?>
+              </div>
             </div>
             <div class="input-group">
               <label>Horário selecionado</label>
-              <div id="selectedTime" class="selected-time">Nenhum horário selecionado</div>
+              <div id="selectedTime" class="selected-time"><?php echo !empty($pre_selected_horario) ? $pre_selected_horario : 'Nenhum horário selecionado'; ?></div>
             </div>
 
             <button type="submit" class="btn-primary">Agendar</button>

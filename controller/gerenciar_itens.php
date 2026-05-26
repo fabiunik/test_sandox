@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../controller/conectarBD.php';
+require_once '../model/Item.php';
 
 // Verificação de Segurança
 if (!isset($_SESSION['usuario_id'])) {
@@ -18,6 +19,9 @@ if ($usuarioLogadoTipo !== 'terapeuta') {
 
 $mensagem_sucesso = "";
 $mensagem_erro = "";
+
+// Instanciar ItemModel
+$itemModel = new Item($pdo);
 
 // --- PROCESSAMENTO DE FORMULÁRIOS (POST) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -41,9 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        $sql = "INSERT INTO itens (terapeuta_id, nome, descricao, valor, imagem) VALUES (?, ?, ?, ?, ?)";
-        $stmt = $pdo->prepare($sql);
-        if ($stmt->execute([$usuarioLogadoId, $nome, $descricao, $valor, $imagem])) {
+        if ($itemModel->cadastrar($usuarioLogadoId, $nome, $descricao, $valor, $imagem)) {
             header("Location: " . $_SERVER['PHP_SELF'] . "?msg=cadastrado");
             exit;
         }
@@ -66,16 +68,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // Sobe a nova imagem
+            $targetDir = "../uploads/";
+            if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
             $fileName = time() . "_" . basename($_FILES["imagem"]["name"]);
-            move_uploaded_file($_FILES["imagem"]["tmp_name"], "../uploads/" . $fileName);
+            move_uploaded_file($_FILES["imagem"]["tmp_name"], $targetDir . $fileName);
             $novoCaminho = "uploads/" . $fileName;
 
-            $sql = "UPDATE itens SET nome=?, descricao=?, valor=?, imagem=? WHERE id=? AND terapeuta_id=?";
-            $pdo->prepare($sql)->execute([$nome, $descricao, $valor, $novoCaminho, $id, $usuarioLogadoId]);
-        } else {
-            // Update sem mexer na imagem
-            $sql = "UPDATE itens SET nome=?, descricao=?, valor=? WHERE id=? AND terapeuta_id=?";
-            $pdo->prepare($sql)->execute([$nome, $descricao, $valor, $id, $usuarioLogadoId]);
+            $itemModel->editar($id, $nome, $descricao, $valor, $novoCaminho, $usuarioLogadoId);
+        } else { // Update sem mexer na imagem
+            $itemModel->editar($id, $nome, $descricao, $valor, null, $usuarioLogadoId);
         }
         header("Location: " . $_SERVER['PHP_SELF'] . "?msg=editado");
         exit;
@@ -92,8 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             unlink("../" . $item['imagem']);
         }
 
-        $sql = "DELETE FROM itens WHERE id = ? AND terapeuta_id = ?";
-        $pdo->prepare($sql)->execute([$id, $usuarioLogadoId]);
+        $itemModel->excluir($id, $usuarioLogadoId);
         header("Location: " . $_SERVER['PHP_SELF'] . "?msg=excluido");
         exit;
     }
@@ -106,10 +106,19 @@ if (isset($_GET['msg'])) {
     if ($_GET['msg'] == 'excluido') $mensagem_sucesso = "Serviço e imagem removidos!";
 }
 
-// Busca os itens
-$stmt = $pdo->prepare("SELECT * FROM itens WHERE terapeuta_id = ? ORDER BY id DESC");
-$stmt->execute([$usuarioLogadoId]);
-$itens = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// --- LÓGICA DE PAGINAÇÃO ---
+$itensPorPagina = 5;
+$paginaAtual = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($paginaAtual - 1) * $itensPorPagina;
+
+// Busca o total de itens para o terapeuta logado
+$totalItens = $itemModel->contarPorTerapeuta($usuarioLogadoId);
+$totalPaginas = ceil($totalItens / $itensPorPagina);
+
+// Busca os itens paginados
+$itens = $itemModel->listarPorTerapeuta($usuarioLogadoId, $itensPorPagina, $offset);
+
+
 ?>
 
 <!DOCTYPE html>

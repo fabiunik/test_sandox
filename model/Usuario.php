@@ -59,10 +59,16 @@ class Usuario {
         $telCripto = $this->criptografar($telefoneLimpo);
 
         // --- 3. VERIFICAÇÃO DE DUPLICIDADE ---
-        $stmt = $this->con->prepare("SELECT id FROM usuario WHERE email = ?");
-        $stmt->execute([$email]);
-        if ($stmt->rowCount() > 0) {
-            throw new Exception("E-mail já cadastrado.");
+        // Verifica e-mail ou CPF (mesmo se inativo, não permite recadastro)
+        $stmt = $this->con->prepare("SELECT status FROM usuario WHERE email = ? OR cpf = ?");
+        $stmt->execute([$email, $cpfCripto]);
+        $existente = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($existente) {
+            if ($existente['status'] === 'inativo') {
+                throw new Exception("Este CPF/E-mail está bloqueado no sistema. Entre em contato com o suporte.");
+            }
+            throw new Exception("E-mail ou CPF já cadastrado.");
         }
 
         // --- 4. PERSISTÊNCIA ---

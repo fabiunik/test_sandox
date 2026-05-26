@@ -30,12 +30,14 @@ $cont_path = $no_controller ? '' : '../controller/';
                 <div class="sidebar-divider" style="display: block !important;"></div>
                 <div class="sidebar-section-title" style="display: block !important;">Painel Administrativo</div>
                 <a href="<?php echo $view_path; ?>painel_administrador.php" class="sidebar-link admin-link">👥 Gerenciar Usuários</a>
+                <a href="<?php echo $view_path; ?>relatorios.php" class="sidebar-link admin-link">📊 Relatórios</a>
                 <a href="<?php echo $cont_path; ?>gerenciar_itens.php" class="sidebar-link admin-link">🛠️ Gerenciar Serviços</a>
             
             <?php elseif ($tipo === 'terapeuta'): ?>
                 <div class="sidebar-divider" style="display: block !important;"></div>
                 <div class="sidebar-section-title" style="display: block !important;">Área Profissional</div>
                 <a href="<?php echo $view_path; ?>perfil_profissional.php" class="sidebar-link">👨‍⚕️ Perfil Profissional</a>
+                <a href="<?php echo $view_path; ?>relatorios.php" class="sidebar-link">📊 Meus Relatórios</a>
                 <a href="<?php echo $cont_path; ?>gerenciar_itens.php" class="sidebar-link">🛠️ Meus Serviços</a>
                 <a href="<?php echo $view_path; ?>disponibilidade.php" class="sidebar-link">⏰ Gerenciar Disponibilidade</a>
             <?php endif; ?> <div class="sidebar-divider"></div>

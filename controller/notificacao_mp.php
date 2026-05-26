@@ -76,14 +76,19 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
     $metodo_pagamento = 'N/A';
     $valor_pago = 0;
 
-    if ($topic === 'merchant_order' && isset($payment_info['payments'])) {
-        $last_payment = end($payment_info['payments']);
-        $id = $last_payment['id'] ?? $id;
-        $status_mp = $last_payment['status'] ?? 'unknown';
+    if ($topic === 'merchant_order') {
         $pedido_id = intval($payment_info['external_reference'] ?? 0);
-        $metodo_pagamento = $last_payment['payment_method_id'] ?? 'N/A';
-        $valor_pago = $last_payment['transaction_amount'] ?? 0;
-    } else {
+        if (!empty($payment_info['payments'])) {
+            $last_payment = end($payment_info['payments']);
+            $id = $last_payment['id'] ?? $id;
+            $status_mp = $last_payment['status'] ?? 'unknown';
+            $metodo_pagamento = $last_payment['payment_method_id'] ?? 'N/A';
+            $valor_pago = $last_payment['transaction_amount'] ?? 0;
+        } else {
+            // Se não há pagamentos, usamos o status da ordem (ex: 'opened')
+            $status_mp = $payment_info['status'] ?? 'opened';
+        }
+    } elseif ($topic === 'payment') {
         $status_mp = $payment_info['status'] ?? 'unknown';
         $pedido_id = intval($payment_info['external_reference'] ?? 0);
         $metodo_pagamento = $payment_info['payment_method_id'] ?? 'N/A';

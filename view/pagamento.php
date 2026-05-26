@@ -29,8 +29,8 @@ if (!$access_token || !$public_key) {
 }
 
 // Validação de consistência (Ambas devem ser TEST- ou ambas APP_USR-)
-$isTestToken = strpos($access_token, 'TEST-') === 0;
-$isTestKey = strpos($public_key, 'TEST-') === 0;
+$isTestToken = strpos(trim($access_token), 'TEST-') === 0;
+$isTestKey = strpos(trim($public_key), 'TEST-') === 0;
 
 if ($isTestToken !== $isTestKey) {
     die("Erro de Configuração: Você está misturando credenciais de Teste e Produção. Verifique seu arquivo .env");
@@ -152,6 +152,15 @@ $public_key = getenv('MP_PUBLIC_KEY');
                     <div class="alert alert-error">
                         <p><strong>Erro ao gerar pagamento:</strong></p>
                         <p><?php echo htmlspecialchars($result['message'] ?? 'Erro de comunicação com o Mercado Pago.'); ?></p>
+                        <p><?php 
+                            if (isset($result['message'])) {
+                                echo "Motivo: " . htmlspecialchars($result['message']);
+                            } elseif (isset($result['cause'][0]['description'])) {
+                                echo "Causa: " . htmlspecialchars($result['cause'][0]['description']);
+                            } else {
+                                echo "Erro de comunicação ou dados inválidos (Verifique se o valor do serviço é maior que zero).";
+                            }
+                        ?></p>
                         <p>Verifique se as chaves MP_ACCESS_TOKEN e MP_PUBLIC_KEY estão configuradas corretamente no Railway.</p>
                         <a href="pedidos.php" class="btn-secondary" style="margin-top: 15px; display: inline-block;">Voltar</a>
                     </div>

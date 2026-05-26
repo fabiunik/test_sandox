@@ -479,6 +479,26 @@ select:focus, button:focus, input:focus{outline:2px solid rgba(24,0,173,0.12)}
   justify-content: center;
 }
 
+/* Configuração exclusiva para a página de Itens (Serviços) */
+.services .card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Força 3 colunas iguais */
+  gap: 20px;
+  justify-items: stretch;
+}
+
+.services .service-card {
+  width: 100%; /* Garante que o card preencha toda a largura da coluna do grid */
+}
+
+/* Ajuste de responsividade para o Grid de serviços */
+@media (max-width: 920px) {
+  .services .card-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .services .card-grid { grid-template-columns: 1fr; }
+}
+
 .service-card {
   background: #fff;
   padding: 20px;

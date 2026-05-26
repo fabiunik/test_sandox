@@ -63,7 +63,7 @@ if (!$agendamento || $agendamento['usuario_id'] != $_SESSION['usuario_id']) {
                 </form>
             </section>
         </main>
-        <footer>© 2025 Aqui tem Terapia!</footer>
+        <?php include $view_path . 'footer.php'; ?>
     </div>
 </body>
 </html>

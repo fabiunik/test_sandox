@@ -60,9 +60,8 @@ try {
           ?>
         </div>
       </section>
-
-      <footer>© 2025 Aqui tem Terapia! | Contato via WhatsApp</footer>
     </main>
+    <?php include $view_path . 'footer.php'; ?>
   </div>
 </body>
 </html>

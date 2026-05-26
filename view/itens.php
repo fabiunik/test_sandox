@@ -64,7 +64,7 @@ $busca = $_GET['busca'] ?? null;
         </div>
       </section>
     </main>
-    <footer>© 2025 Aqui tem Terapia! | Contato via WhatsApp</footer>
+    <?php include $view_path . 'footer.php'; ?>
   </div>
 </body>
 </html>

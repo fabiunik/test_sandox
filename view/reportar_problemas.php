@@ -52,7 +52,7 @@ unset($_SESSION['success'], $_SESSION['error']);
       </section>
     </main>
 
-    <footer>© 2025 Aqui tem Terapia!</footer>
+    <?php include $view_path . 'footer.php'; ?>
   </div>
 </body>
 </html>

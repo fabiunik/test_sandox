@@ -54,6 +54,9 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
     curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer $access_token"]);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    // Ignora verificação de SSL para garantir conectividade no Railway
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
     curl_setopt($ch, CURLOPT_USERAGENT, 'AquiTemTerapia/1.0'); // Identificação opcional para evitar bloqueios
     $response = curl_exec($ch);
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -127,6 +130,14 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
 
         // 2. Se aprovado, atualiza o pedido e os agendamentos vinculados
         if ($status_mp === 'approved') {
+            // Verifica o status atual antes de processar para evitar disparos duplicados
+            $infoPedidoAtual = $pedidoModel->obterPorId($pedido_id);
+            if ($infoPedidoAtual && $infoPedidoAtual['status'] === 'pago') {
+                error_log("Pedido #$pedido_id já está processado. Encerrando notificação.");
+                http_response_code(200);
+                exit;
+            }
+
             $pedidoModel->atualizarStatus($pedido_id, 'pago');
             error_log("Status do Pedido #$pedido_id atualizado para 'pago' no banco de dados.");
             
@@ -159,6 +170,9 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
                     $mail = new PHPMailer(true);
                     foreach ($detalhesNotificacao as $info) {
                         try {
+                            // Limpa destinatários de iterações anteriores para evitar acúmulo
+                            $mail->clearAddresses();
+                            
                             // Configurações do Servidor SMTP
                             $mail->isSMTP();
                             $mail->Host       = gethostbyname($smtp_host ?: 'mailpit.railway.internal');

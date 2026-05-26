@@ -7,17 +7,24 @@ class Avaliacao {
         $this->pdo = $pdo;
     }
 
-    public function salvar($usuario_id, $item_id, $terapeuta_id, $nota, $comentario) {
-        $sql = "INSERT INTO avaliacao (usuario_id, item_id, terapeuta_id, nota, comentario) 
-                VALUES (?, ?, ?, ?, ?)";
+    public function salvar($usuario_id, $item_id, $terapeuta_id, $nota, $comentario, $agendamento_id = null) {
+        $sql = "INSERT INTO avaliacao (usuario_id, agendamento_id, item_id, terapeuta_id, nota, comentario) 
+                VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([
             $usuario_id, 
+            $agendamento_id,
             $item_id ?: null, 
             $terapeuta_id ?: null, 
             $nota, 
             htmlspecialchars($comentario)
         ]);
+    }
+
+    public function verificarAvaliacao($agendamento_id) {
+        $stmt = $this->pdo->prepare("SELECT id FROM avaliacao WHERE agendamento_id = ?");
+        $stmt->execute([$agendamento_id]);
+        return $stmt->fetch() ? true : false;
     }
 
     public function buscarPorTerapeuta($terapeuta_id) {

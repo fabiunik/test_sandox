@@ -18,12 +18,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['usuario_id'])) {
         $avaliacaoModel = new Avaliacao($pdo);
         $item_id = $ag['itens_id'];
         
-        if ($avaliacaoModel->salvar($usuario_id, $item_id, $terapeuta_id, $nota, $comentario)) {
-            $_SESSION['success'] = "Avaliação enviada com sucesso!";
+        if ($avaliacaoModel->salvar($usuario_id, $item_id, $terapeuta_id, $nota, $comentario, $agendamento_id)) {
+            $_SESSION['success'] = "🌟 Muito obrigado! Sua avaliação foi recebida e nos ajuda a melhorar cada vez mais nossos serviços.";
         } else {
             $_SESSION['error'] = "Erro ao salvar avaliação.";
         }
     }
 }
-header("Location: ../view/pedidos.php");
+header("Location: ../view/meus_agendamentos.php");
 exit;

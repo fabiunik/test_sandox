@@ -2,6 +2,7 @@
 session_start();
 require_once __DIR__ . '/../controller/conectarBD.php';
 require_once __DIR__ . '/../model/Agendamento.php';
+require_once __DIR__ . '/../model/Avaliacao.php';
 
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: login.php");
@@ -11,6 +12,13 @@ if (!isset($_SESSION['usuario_id'])) {
 $agendamento_id = intval($_GET['agendamento_id'] ?? 0);
 $agendamentoModel = new Agendamento($pdo);
 $agendamento = $agendamentoModel->buscarPorId($agendamento_id);
+$avalModel = new Avaliacao($pdo);
+
+if ($avalModel->verificarAvaliacao($agendamento_id)) {
+    $_SESSION['success'] = "Este atendimento já foi avaliado. Obrigado pelo seu feedback!";
+    header("Location: meus_agendamentos.php");
+    exit;
+}
 
 if (!$agendamento || $agendamento['usuario_id'] != $_SESSION['usuario_id']) {
     die("Agendamento não encontrado.");

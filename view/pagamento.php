@@ -21,16 +21,16 @@ $result = [];
 
 // --- INTEGRAÇÃO MERCADO PAGO ---
 if ($pedidoValido) {
-    $access_token = getenv('MP_ACCESS_TOKEN');
-$public_key = getenv('MP_PUBLIC_KEY');
+    $access_token = trim(getenv('MP_ACCESS_TOKEN') ?: '');
+    $public_key = trim(getenv('MP_PUBLIC_KEY') ?: '');
 
 if (!$access_token || !$public_key) {
     die("Erro: Chave de acesso (Access Token) do Mercado Pago não configurada nas variáveis de ambiente.");
 }
 
 // Validação de consistência (Ambas devem ser TEST- ou ambas APP_USR-)
-$isTestToken = strpos(trim($access_token), 'TEST-') === 0;
-$isTestKey = strpos(trim($public_key), 'TEST-') === 0;
+$isTestToken = strpos($access_token, 'TEST-') === 0;
+$isTestKey = strpos($public_key, 'TEST-') === 0;
 
 if ($isTestToken !== $isTestKey) {
     die("Erro de Configuração: Você está misturando credenciais de Teste e Produção. Verifique seu arquivo .env");
@@ -94,7 +94,12 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+// Proteção contra erros de SSL em ambientes de container (Railway/Docker)
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
 $response = curl_exec($ch);
+$curl_error = curl_error($ch);
 $result = json_decode($response, true);
 
 // Log de erro completo da resposta da API
@@ -102,7 +107,7 @@ error_log('Resposta Mercado Pago: ' . $response);
 
 // Log de erro para depuração se a API falhar
 if (curl_errno($ch)) {
-    error_log('Erro cURL Mercado Pago: ' . curl_error($ch));
+    error_log('Erro cURL Mercado Pago: ' . $curl_error);
 }
 
 curl_close($ch);
@@ -151,12 +156,13 @@ $public_key = getenv('MP_PUBLIC_KEY');
                     <?php else: ?>
                     <div class="alert alert-error">
                         <p><strong>Erro ao gerar pagamento:</strong></p>
-                        <p><?php echo htmlspecialchars($result['message'] ?? 'Erro de comunicação com o Mercado Pago.'); ?></p>
                         <p><?php 
                             if (isset($result['message'])) {
                                 echo "Motivo: " . htmlspecialchars($result['message']);
                             } elseif (isset($result['cause'][0]['description'])) {
                                 echo "Causa: " . htmlspecialchars($result['cause'][0]['description']);
+                            } elseif (!empty($curl_error)) {
+                                echo "Erro de Rede (cURL): " . htmlspecialchars($curl_error);
                             } else {
                                 echo "Erro de comunicação ou dados inválidos (Verifique se o valor do serviço é maior que zero).";
                             }

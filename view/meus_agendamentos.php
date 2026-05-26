@@ -2,6 +2,7 @@
 session_start();
 require_once __DIR__ . '/../controller/conectarBD.php';
 require_once __DIR__ . '/../model/Agendamento.php';
+require_once __DIR__ . '/../model/Avaliacao.php';
 
 if (!isset($_SESSION['usuario_id'])) {
     header("Location: login.php");
@@ -9,6 +10,7 @@ if (!isset($_SESSION['usuario_id'])) {
 }
 
 $agendamentoModel = new Agendamento($pdo);
+$avaliacaoModel = new Avaliacao($pdo);
 $meusAgendamentos = $agendamentoModel->listarPorUsuario($_SESSION['usuario_id']);
 
 $mensagem_sucesso = $_SESSION['success'] ?? null;
@@ -74,15 +76,17 @@ unset($_SESSION['success'], $_SESSION['error']);
                             <button type="submit" class="btn-secondary" style="color: #dc3545; border-color: #dc3545;">Cancelar</button>
                         </form>
                     <?php elseif ($isConfirmado): ?>
-                        <a href="agendamento.php?item_id=<?php echo $ag['itens_id']; ?>&terapeuta_id=<?php echo $ag['terapeuta_id']; ?>" class="btn-secondary" style="text-decoration: none; font-size: 0.9rem;">Reagendar</a>
                         <?php if (!$dataPassada): ?>
+                            <a href="agendamento.php?item_id=<?php echo $ag['itens_id']; ?>&terapeuta_id=<?php echo $ag['terapeuta_id']; ?>" class="btn-secondary" style="text-decoration: none; font-size: 0.9rem;">Reagendar</a>
                             <form action="../controller/gerenciar_agendamentos.php" method="POST" onsubmit="return confirm('Atenção: O cancelamento de sessões pagas pode estar sujeito a taxas. Confirmar cancelamento?')">
                                 <input type="hidden" name="acao" value="cancelar">
                                 <input type="hidden" name="id" value="<?php echo $ag['id']; ?>">
                                 <button type="submit" class="btn-secondary" style="color: #dc3545; border-color: #dc3545;">Cancelar</button>
                             </form>
                         <?php else: ?>
-                            <a href="avaliacao.php?agendamento_id=<?php echo $ag['id']; ?>" class="btn-primary" style="text-decoration: none; font-size: 0.9rem; background: #28a745;">⭐ Avaliar Atendimento</a>
+                            <?php if (!$avaliacaoModel->verificarAvaliacao($ag['id'])): ?>
+                                <a href="avaliacao.php?agendamento_id=<?php echo $ag['id']; ?>" class="btn-primary" style="text-decoration: none; font-size: 0.9rem; background: #28a745;">⭐ Avaliar Atendimento</a>
+                            <?php endif; ?>
                         <?php endif; ?>
                     <?php elseif ($ag['status'] === 'cancelado'): ?>
                         <a href="agendamento.php?item_id=<?php echo $ag['itens_id']; ?>&terapeuta_id=<?php echo $ag['terapeuta_id']; ?>" class="btn-primary" style="text-decoration: none; font-size: 0.9rem;">Agendar Novamente</a>
@@ -98,7 +102,6 @@ unset($_SESSION['success'], $_SESSION['error']);
       </section>
     </main>
 
-    <footer>© 2025 Aqui tem Terapia! | Contato via WhatsApp</footer>
   </div>
 </body>
 </html>

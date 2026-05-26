@@ -28,21 +28,21 @@ $cont_path = $no_controller ? '' : '../controller/';
     </form>
 
     <!-- Links Públicos -->
-    <a class="cta" href="<?php echo $view_path; ?>tela_inicial.php">Início</a>
-    <a class="cta" href="<?php echo $view_path; ?>itens.php">Serviços</a>
-    <a class="cta" href="<?php echo $view_path; ?>profissionais.php">Profissionais</a>
+    <a class="cta nav-desktop" href="<?php echo $view_path; ?>tela_inicial.php">Início</a>
+    <a class="cta nav-desktop" href="<?php echo $view_path; ?>itens.php">Serviços</a>
+    <a class="cta nav-desktop" href="<?php echo $view_path; ?>profissionais.php">Profissionais</a>
 
     <?php if (!$usuario_logado): ?>
         <!-- Links para Visitantes -->
-        <a class="cta <?php echo ($pagina_atual === 'login.php') ? 'active' : ''; ?>" href="<?php echo $view_path; ?>login.php">Entrar</a>
+        <a class="cta nav-desktop <?php echo ($pagina_atual === 'login.php') ? 'active' : ''; ?>" href="<?php echo $view_path; ?>login.php">Entrar</a>
     <?php endif; ?>
 
-    <a class="cta" href="<?php echo $view_path; ?>contato.php">Contato</a>
-    <a class="cta" href="<?php echo $view_path; ?>reportar_problemas.php">Reportar Problema</a>
+    <a class="cta nav-desktop" href="<?php echo $view_path; ?>contato.php">Contato</a>
+    <a class="cta nav-desktop" href="<?php echo $view_path; ?>reportar_problemas.php">Reportar Problema</a>
 
     <!-- Botão que abre a Sidebar (mantendo sua funcionalidade atual) -->
     <button class="menu-toggle" onclick="toggleMenu()" aria-label="Abrir menu">
-      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="#333" viewBox="0 0 16 16">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="#fff" viewBox="0 0 16 16">
         <path d="M2 4h12v2H2V4zm0 4h12v2H2V8zm0 4h12v2H2v-2z"/>
       </svg>
     </button>

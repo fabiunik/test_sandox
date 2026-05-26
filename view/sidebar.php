@@ -19,6 +19,13 @@ $cont_path = $no_controller ? '' : '../controller/';
     </div>
 
     <nav class="sidebar-nav">
+        <!-- Links de Navegação Principal (Essenciais para o Mobile) -->
+        <a href="<?php echo $view_path; ?>tela_inicial.php" class="sidebar-link">🏠 Início</a>
+        <a href="<?php echo $view_path; ?>itens.php" class="sidebar-link">🧘 Serviços</a>
+        <a href="<?php echo $view_path; ?>profissionais.php" class="sidebar-link">👨‍⚕️ Profissionais</a>
+        <a href="<?php echo $view_path; ?>contato.php" class="sidebar-link">📞 Contato</a>
+        <div class="sidebar-divider"></div>
+
         <?php if (isset($_SESSION['usuario_id'])): ?>
             <a href="<?php echo $view_path; ?>agendamento.php" class="sidebar-link">➕ Novo Agendamento</a>
             <a href="<?php echo $view_path; ?>meus_agendamentos.php" class="sidebar-link">📅 Meus Agendamentos</a>

@@ -46,6 +46,25 @@ try {
         $pedidosParaExibir = $pedidoModel->listarPorUsuario($_SESSION['usuario_id']);
     }
 
+    // Ordenação personalizada: Pendente > Pago (Data Crescente) > Cancelado
+    usort($pedidosParaExibir, function($a, $b) {
+        $prioridade = ['pendente' => 1, 'pago' => 2, 'cancelado' => 3];
+        $ordemA = $prioridade[$a['status']] ?? 4;
+        $ordemB = $prioridade[$b['status']] ?? 4;
+
+        if ($ordemA !== $ordemB) {
+            return $ordemA <=> $ordemB;
+        }
+
+        // Se ambos são 'pago', usamos ordem crescente de data (oldest first)
+        if ($a['status'] === 'pago') {
+            return strtotime($a['data_criacao']) <=> strtotime($b['data_criacao']);
+        }
+
+        // Para os demais, mantemos a ordem decrescente (mais recentes primeiro)
+        return strtotime($b['data_criacao']) <=> strtotime($a['data_criacao']);
+    });
+
 } catch (Exception $e) {
     $mensagem_erro = "Erro ao processar pedidos: " . $e->getMessage();
 }

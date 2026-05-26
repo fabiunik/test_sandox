@@ -152,7 +152,24 @@ unset($_SESSION['success'], $_SESSION['error']);
       </section>
     </main>
 
-    <footer>© 2025 Aqui tem Terapia! | Contato via WhatsApp</footer>
   </div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+  <script>
+    $(document).ready(function(){
+        $('#cpf').mask('000.000.000-00');
+        
+        var behavior = function (val) {
+            return val.replace(/\D/g, '').length === 11 ? '(00) 00000-0000' : '(00) 0000-00009';
+        },
+        options = {
+            onKeyPress: function(val, e, field, options) {
+                field.mask(behavior.apply({}, arguments), options);
+            }
+        };
+        $('#telefone').mask(behavior, options);
+    });
+  </script>
 </body>
 </html>

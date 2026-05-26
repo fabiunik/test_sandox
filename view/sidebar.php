@@ -21,9 +21,9 @@ $cont_path = $no_controller ? '' : '../controller/';
     <nav class="sidebar-nav">
         <?php if (isset($_SESSION['usuario_id'])): ?>
             <a href="<?php echo $view_path; ?>agendamento.php" class="sidebar-link">➕ Novo Agendamento</a>
-            <a href="<?php echo $view_path; ?>meus_agendamentos.php" class="sidebar-link">📅 Minha Agenda</a>
-            <a href="<?php echo $view_path; ?>perfil.php" class="sidebar-link">👤 Meu Perfil</a>
-            <a href="<?php echo $view_path; ?>pedidos.php" class="sidebar-link">📋 Meus Pedidos</a>
+            <a href="<?php echo $view_path; ?>meus_agendamentos.php" class="sidebar-link">📅 Meus Agendamentos</a>
+            <a href="<?php echo $view_path; ?>perfil.php" class="sidebar-link">� Meu Perfil</a>
+            <a href="<?php echo $view_path; ?>pedidos.php" class="sidebar-link">� Meus Pedidos</a>
             <a href="<?php echo $view_path; ?>reportar_problemas.php" class="sidebar-link">🆘 Reportar Problema</a>
 
             <?php if ($tipo === 'administrador'): ?>

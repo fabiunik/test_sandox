@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $usuario_id = $_SESSION['usuario_id'] ?? 0;
     if ($usuario_id == 0) {
         $_SESSION['pending_agendamento'] = $_POST;
+        $_SESSION['error'] = "⚠️ Você precisa entrar na sua conta para finalizar o agendamento. Seus dados foram salvos.";
         header("Location: login.php");
         exit;
     } else {
@@ -176,6 +177,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     document.addEventListener('DOMContentLoaded', function() {
       const pre_selected_item_id = <?php echo $pre_selected_item_id; ?>;
       const pre_selected_terapeuta_id = <?php echo $pre_selected_terapeuta_id; ?>;
+      
+      <?php if ($pending): ?>
+      // Popup solicitado para avisar sobre a recuperação de dados
+      alert("✅ Dados recuperados! Você precisava estar logado para agendar. Suas escolhas de profissional, serviço e horário foram restauradas. Agora é só clicar em 'Agendar' para confirmar.");
+      <?php endif; ?>
+
       if (pre_selected_item_id > 0 && pre_selected_terapeuta_id > 0) {
         carregarHorarios();
       }
@@ -204,7 +211,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <select id="item_id" name="item_id" required onchange="carregarHorarios()">
                 <option value="">-- escolha --</option>
                 <?php foreach ($itens as $item): ?>
-                  <option value="<?php echo $item['id']; ?>"><?php echo htmlspecialchars($item['nome']); ?> - R$ <?php echo number_format($item['valor'], 2, ',', '.'); ?></option>
+                  <option value="<?php echo $item['id']; ?>" <?php echo $pre_selected_item_id == $item['id'] ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($item['nome']); ?> - R$ <?php echo number_format($item['valor'], 2, ',', '.'); ?>
+                  </option>
                 <?php endforeach; ?>
               </select>
             </div>
@@ -214,7 +223,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
               <select id="terapeuta_id" name="terapeuta_id" required onchange="carregarHorarios()">
                 <option value="">-- escolha --</option>
                 <?php foreach ($terapeutas as $terapeuta): ?>
-                  <option value="<?php echo $terapeuta['id']; ?>"><?php echo htmlspecialchars($terapeuta['nome']); ?></option>
+                  <option value="<?php echo $terapeuta['id']; ?>" <?php echo $pre_selected_terapeuta_id == $terapeuta['id'] ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($terapeuta['nome']); ?>
+                  </option>
                 <?php endforeach; ?>
               </select>
             </div>

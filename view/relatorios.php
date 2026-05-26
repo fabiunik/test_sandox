@@ -146,7 +146,7 @@ $totalPaginasA = ceil($totalA / $perPage);
                                         <td><?php echo htmlspecialchars($ag['terapeuta_nome']); ?></td>
                                     <?php endif; ?>
                                     <td>
-                                        <?php if ($ag['status'] === 'confirmado'): ?>
+                                        <?php if ($ag['status'] === 'confirmado' || $ag['status'] === 'pago'): ?>
                                             <span class="status-badge status-confirmado">✓ Confirmado</span>
                                         <?php else: ?>
                                             <span style="color: #999; font-size: 0.8rem;">Aguardando</span>

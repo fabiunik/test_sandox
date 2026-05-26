@@ -183,7 +183,7 @@ $total_usuarios_comuns = count(array_filter($usuarios, fn($u) => $u['tipo'] === 
         </div>
     </main>
 
-    <footer>© 2025 Aqui tem Terapia! | Contato via WhatsApp</footer>
+    <?php include $view_path . 'footer.php'; ?>
   </div>
 
   <!-- MODAL DE EDIÇÃO -->

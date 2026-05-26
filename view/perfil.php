@@ -151,7 +151,7 @@ unset($_SESSION['success'], $_SESSION['error']);
         </section>
       </section>
     </main>
-
+    <?php include $view_path . 'footer.php'; ?>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

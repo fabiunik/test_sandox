@@ -91,7 +91,7 @@ require_once __DIR__ . '/../controller/gerenciar_perfil_profissional.php';
         <a class="cta" href="profissionais.php" style="margin-top: 20px; display: inline-block;">← Voltar</a>
         <?php endif; ?>
     </main>
-    <footer style="margin-top: 40px;">© 2025 Aqui tem Terapia! | Contato via WhatsApp</footer>
+    <?php include $view_path . 'footer.php'; ?>
   </div>
 </body>
 </html>

@@ -53,7 +53,7 @@ unset($_SESSION['success'], $_SESSION['error']);
         </form>
       </section>
     </main>
-    <footer>© <?php echo date('Y'); ?> Aqui tem Terapia!</footer>
+    <?php include $view_path . 'footer.php'; ?>
   </div>
 </body>
 </html>

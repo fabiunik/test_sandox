@@ -1,0 +1,1 @@
+<footer>© <?php echo date('Y'); ?> Aqui tem Terapia! | Contato via WhatsApp</footer>

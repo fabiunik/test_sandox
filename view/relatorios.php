@@ -28,6 +28,7 @@ $agendamentos = $agendamentoModel->listarPorPeriodo($data_inicio, $data_fim, ($t
 $perPage = 5;
 $pageF = isset($_GET['pageF']) ? (int)$_GET['pageF'] : 1;
 $pageA = isset($_GET['pageA']) ? (int)$_GET['pageA'] : 1;
+$pageV = isset($_GET['pageV']) ? (int)$_GET['pageV'] : 1;
 
 $totalF = count($financeiro);
 $totalA = count($agendamentos);
@@ -36,6 +37,13 @@ $financeiroPaginado = array_slice($financeiro, ($pageF - 1) * $perPage, $perPage
 $agendamentosPaginados = array_slice($agendamentos, ($pageA - 1) * $perPage, $perPage);
 $totalPaginasF = ceil($totalF / $perPage);
 $totalPaginasA = ceil($totalA / $perPage);
+
+// Lógica para Avaliações (exclusivo para terapeutas)
+$avalModel = new Avaliacao($pdo);
+$avaliacoes = ($tipo === 'terapeuta') ? $avalModel->buscarPorTerapeuta($usuario_id) : [];
+$totalV = count($avaliacoes);
+$avaliacoesPaginadas = array_slice($avaliacoes, ($pageV - 1) * $perPage, $perPage);
+$totalPaginasV = ceil($totalV / $perPage);
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -107,11 +115,11 @@ $totalPaginasA = ceil($totalA / $perPage);
                         <?php if ($totalPaginasF > 1): ?>
                             <div class="pagination-simple">
                                 <?php if ($pageF > 1): ?>
-                                    <a href="?data_inicio=<?php echo $data_inicio; ?>&data_fim=<?php echo $data_fim; ?>&pageF=<?php echo $pageF - 1; ?>&pageA=<?php echo $pageA; ?>">« Ant</a>
+                                    <a href="?data_inicio=<?php echo $data_inicio; ?>&data_fim=<?php echo $data_fim; ?>&pageF=<?php echo $pageF - 1; ?>&pageA=<?php echo $pageA; ?>&pageV=<?php echo $pageV; ?>">« Ant</a>
                                 <?php endif; ?>
                                 <span>Pág <?php echo $pageF; ?> de <?php echo $totalPaginasF; ?></span>
                                 <?php if ($pageF < $totalPaginasF): ?>
-                                    <a href="?data_inicio=<?php echo $data_inicio; ?>&data_fim=<?php echo $data_fim; ?>&pageF=<?php echo $pageF + 1; ?>&pageA=<?php echo $pageA; ?>">Próx »</a>
+                                    <a href="?data_inicio=<?php echo $data_inicio; ?>&data_fim=<?php echo $data_fim; ?>&pageF=<?php echo $pageF + 1; ?>&pageA=<?php echo $pageA; ?>&pageV=<?php echo $pageV; ?>">Próx »</a>
                                 <?php endif; ?>
                             </div>
                         <?php endif; ?>
@@ -159,11 +167,11 @@ $totalPaginasA = ceil($totalA / $perPage);
                         <?php if ($totalPaginasA > 1): ?>
                             <div class="pagination-simple">
                                 <?php if ($pageA > 1): ?>
-                                    <a href="?data_inicio=<?php echo $data_inicio; ?>&data_fim=<?php echo $data_fim; ?>&pageA=<?php echo $pageA - 1; ?>&pageF=<?php echo $pageF; ?>">« Ant</a>
+                                    <a href="?data_inicio=<?php echo $data_inicio; ?>&data_fim=<?php echo $data_fim; ?>&pageA=<?php echo $pageA - 1; ?>&pageF=<?php echo $pageF; ?>&pageV=<?php echo $pageV; ?>">« Ant</a>
                                 <?php endif; ?>
                                 <span>Pág <?php echo $pageA; ?> de <?php echo $totalPaginasA; ?></span>
                                 <?php if ($pageA < $totalPaginasA): ?>
-                                    <a href="?data_inicio=<?php echo $data_inicio; ?>&data_fim=<?php echo $data_fim; ?>&pageA=<?php echo $pageA + 1; ?>&pageF=<?php echo $pageF; ?>">Próx »</a>
+                                    <a href="?data_inicio=<?php echo $data_inicio; ?>&data_fim=<?php echo $data_fim; ?>&pageA=<?php echo $pageA + 1; ?>&pageF=<?php echo $pageF; ?>&pageV=<?php echo $pageV; ?>">Próx »</a>
                                 <?php endif; ?>
                             </div>
                         <?php endif; ?>
@@ -199,10 +207,8 @@ $totalPaginasA = ceil($totalA / $perPage);
                         </div>
                     <?php endif; ?>
 
-                    <?php if ($tipo === 'terapeuta' || $tipo === 'administrador'): 
-                        $avalModel = new Avaliacao($pdo);
-                        // Se for admin, poderíamos listar todas, aqui focamos no terapeuta logado
-                        $avaliacoes = ($tipo === 'terapeuta') ? $avalModel->buscarPorTerapeuta($usuario_id) : [];
+                    <?php if ($tipo === 'terapeuta'): 
+                        // A lógica de busca e paginação foi movida para o topo do arquivo
                     ?>
                         <?php if ($tipo === 'terapeuta'): ?>
                             <!-- Visão do Terapeuta: Avaliações -->
@@ -221,7 +227,7 @@ $totalPaginasA = ceil($totalA / $perPage);
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach ($avaliacoes as $a): ?>
+                                            <?php foreach ($avaliacoesPaginadas as $a): ?>
                                             <tr>
                                                 <td><?php echo htmlspecialchars($a['nome']); ?></td>
                                                 <td class="rating-stars"><?php echo str_repeat('★', $a['nota']); ?></td>
@@ -231,6 +237,17 @@ $totalPaginasA = ceil($totalA / $perPage);
                                             <?php endforeach; ?>
                                         </tbody>
                                     </table>
+                                    <?php if ($totalPaginasV > 1): ?>
+                                        <div class="pagination-simple">
+                                            <?php if ($pageV > 1): ?>
+                                                <a href="?data_inicio=<?php echo $data_inicio; ?>&data_fim=<?php echo $data_fim; ?>&pageV=<?php echo $pageV - 1; ?>&pageF=<?php echo $pageF; ?>&pageA=<?php echo $pageA; ?>">« Ant</a>
+                                            <?php endif; ?>
+                                            <span>Pág <?php echo $pageV; ?> de <?php echo $totalPaginasV; ?></span>
+                                            <?php if ($pageV < $totalPaginasV): ?>
+                                                <a href="?data_inicio=<?php echo $data_inicio; ?>&data_fim=<?php echo $data_fim; ?>&pageV=<?php echo $pageV + 1; ?>&pageF=<?php echo $pageF; ?>&pageA=<?php echo $pageA; ?>">Próx »</a>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                             </div>
                         <?php endif; ?>

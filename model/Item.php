@@ -36,17 +36,17 @@ class Item {
     }
 
     public function listarPorTerapeuta($terapeuta_id, $limite = null, $offset = null) {
-        $sql = "SELECT * FROM itens WHERE terapeuta_id = ?";
+        $sql = "SELECT * FROM itens WHERE terapeuta_id = :terapeuta_id";
         if ($limite !== null && $offset !== null) {
             $sql .= " ORDER BY id DESC LIMIT :limite OFFSET :offset";
             $stmt = $this->con->prepare($sql);
-            $stmt->bindParam(':terapeuta_id', $terapeuta_id, PDO::PARAM_INT);
-            $stmt->bindParam(':limite', $limite, PDO::PARAM_INT);
-            $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
+            $stmt->bindValue(':terapeuta_id', (int)$terapeuta_id, PDO::PARAM_INT);
+            $stmt->bindValue(':limite', (int)$limite, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
         } else {
             $sql .= " ORDER BY id DESC";
             $stmt = $this->con->prepare($sql);
-            $stmt->bindParam(':terapeuta_id', $terapeuta_id, PDO::PARAM_INT);
+            $stmt->bindValue(':terapeuta_id', (int)$terapeuta_id, PDO::PARAM_INT);
         }
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

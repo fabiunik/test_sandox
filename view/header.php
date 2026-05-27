@@ -54,5 +54,5 @@ $cont_path = $no_controller ? '' : '../controller/';
  * Importante: A Sidebar deve vir logo após o header para que o 
  * z-index e o overlay funcionem corretamente em todas as páginas.
  */
-include __DIR__ . '/sidebar.php'; 
+include 'sidebar.php'; 
 ?>

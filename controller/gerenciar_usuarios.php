@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (isset($_SESSION['pending_agendamento'])) {
                     header("Location: ../view/agendamento.php");
                 } else {
-                    header("Location: ../view/perfil.php");
+                    header("Location: ../view/itens.php");
                 }
                 exit;
             } else {
@@ -294,7 +294,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } catch (\Throwable $e) {
         error_log("ERRO CRÍTICO em gerenciar_usuarios.php: " . $e->getMessage() . " em " . $e->getFile() . " na linha " . $e->getLine());
         $_SESSION['error'] = $e->getMessage();
-        header("Location: ../view/login.php");
+        
+        // Preserva os dados do formulário (exceto senhas) para não obrigar o usuário a redigitar tudo
+        $_SESSION['form_data'] = array_diff_key($_POST, array_flip(['senha', 'confirma_senha']));
+        
+        $redirect = ($acao === 'criar') ? 'cadastro.php' : 'login.php';
+        header("Location: ../view/$redirect");
         exit;
     }
 }

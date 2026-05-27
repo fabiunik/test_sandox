@@ -2,6 +2,9 @@
 session_start();
 $mensagem_erro = $_SESSION['error'] ?? null;
 unset($_SESSION['error']);
+
+$old = $_SESSION['form_data'] ?? [];
+unset($_SESSION['form_data']);
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -29,23 +32,23 @@ unset($_SESSION['error']);
           
           <div class="input-group">
             <label for="nome">Nome Completo</label>
-            <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required>
+            <input type="text" id="nome" name="nome" placeholder="Seu nome completo" value="<?php echo htmlspecialchars($old['nome'] ?? ''); ?>" required>
           </div>
           <div class="input-group">
             <label for="cpf">CPF</label>
-            <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" required>
+            <input type="text" id="cpf" name="cpf" placeholder="000.000.000-00" value="<?php echo htmlspecialchars($old['cpf'] ?? ''); ?>" required>
           </div>
           <div class="input-group">
             <label for="dtnas">Data de Nascimento</label>
-            <input type="date" id="dtnas" name="dtnas" required>
+            <input type="date" id="dtnas" name="dtnas" value="<?php echo htmlspecialchars($old['dtnas'] ?? ''); ?>" required>
           </div>
           <div class="input-group">
             <label for="telefone">Telefone</label>
-            <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000" required>
+            <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000" value="<?php echo htmlspecialchars($old['telefone'] ?? ''); ?>" required>
           </div>
           <div class="input-group">
             <label for="email">E-mail</label>
-            <input type="email" id="email" name="email" placeholder="seu@email.com" required>
+            <input type="email" id="email" name="email" placeholder="seu@email.com" value="<?php echo htmlspecialchars($old['email'] ?? ''); ?>" required>
           </div>
           <div class="input-group">
             <label for="senha">Senha</label>

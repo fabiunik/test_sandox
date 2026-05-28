@@ -21,7 +21,7 @@ if (session_status() === PHP_SESSION_NONE) {
         <div class="hero-content">
           <h1 id="hero-title">Conecte-se com Profissionais de Saúde Especializados</h1>
           <p class="lead">
-            Agende consultas online com terapeutas, coaches e outros profissionais de bem-estar.<br>
+            Agende consultas online com terapeutas e outros profissionais de bem-estar.<br>
             Rápido, seguro e acessível.
           </p>
           <div class="cta-group">
@@ -77,13 +77,13 @@ if (session_status() === PHP_SESSION_NONE) {
           <div class="step">
             <div class="step-number">3</div>
             <h3>Agende</h3>
-            <p>Selecione a data e hora desejada e confirme seu agendamento na plataforma.</p>
+            <p>Selecione a data e hora desejada, confirme sua escolha e faça seu pagamento. Receba confirmação de seu agendamento na plataforma.</p>
           </div>
           <div class="step-arrow">→</div>
           <div class="step">
             <div class="step-number">4</div>
-            <h3>Atenda</h3>
-            <p>Realize seu atendimento online com segurança e privacidade garantidas.</p>
+            <h3>Atendimento</h3>
+            <p>Na data e horário confirmados, seu atendimento será realizado na modalidade escolhida com segurança e privacidade garantidas.</p>
           </div>
         </div>
       </section>

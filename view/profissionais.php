@@ -46,7 +46,18 @@ try {
                   ?>
                   <article class="service-card" aria-labelledby="p-<?php echo $id; ?>">
                       <img class="avatar" 
-                          src="<?php echo !empty($terapeuta['imagem']) ? '../' . $terapeuta['imagem'] : 'https://placehold.co/239x239'; ?>" 
+                          src="<?php 
+                              if (!empty($terapeuta['imagem'])) {
+                                  $fotoPath = $terapeuta['imagem'];
+                                  if (strpos($fotoPath, 'uploads/') === 0) {
+                                      echo '../' . $fotoPath;
+                                  } else {
+                                      echo $fotoPath;
+                                  }
+                              } else {
+                                  echo 'https://placehold.co/239x239';
+                              }
+                          ?>" 
                           alt="<?php echo $nome; ?>">
                     <h3 id="p-<?php echo $id; ?>"><?php echo $nome; ?></h3>
                     <p><?php echo $descricao; ?></p>

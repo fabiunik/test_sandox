@@ -62,6 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['acao'] ?? '') === 'salvar_
 
                 if (move_uploaded_file($_FILES['foto']['tmp_name'], $targetFile)) {
                     $fotoPath = 'uploads/' . $fileName;
+                    chmod($targetFile, 0644);
                 } else {
                     $erroPerfil = "Falha ao enviar a imagem. Tente novamente.";
                 }
@@ -107,7 +108,21 @@ if ($perfil && !empty($perfil['foto'])) {
     $storedFoto = $perfil['foto'];
     if (strpos($storedFoto, 'uploads/') === 0) {
         $fotoUrl = '../' . $storedFoto;
-    } else {
+    } elseif (strpos($storedFoto, '../uploads/') === 0) {
         $fotoUrl = $storedFoto;
+    } else {
+        $fotoUrl = '../uploads/' . $storedFoto;
+    }
+} else {
+    // Fallback: procura diretamente na pasta uploads
+    $uploadDir = dirname(__DIR__) . '/uploads';
+    $arquivos = @scandir($uploadDir);
+    if ($arquivos) {
+        foreach ($arquivos as $arquivo) {
+            if (preg_match('/_' . $id . '\.(jpg|jpeg|png|gif|webp)$/', $arquivo)) {
+                $fotoUrl = '../uploads/' . $arquivo;
+                break;
+            }
+        }
     }
 }

@@ -298,6 +298,291 @@ select:focus, button:focus, input:focus{outline:2px solid rgba(24,0,173,0.12)}
 .slot-label { display: inline-block; width: 100%; padding: 6px; cursor: pointer; }
 .slot-label.bloqueado { background: #eee; color: #666; }
 
+/* ===== TELA INICIAL - SEÇÕES OTIMIZADAS ===== */
+
+/* SEÇÃO 1: HERO MELHORADO */
+.hero-container {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  margin-top: 28px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.hero-content {
+  flex: 1 1 320px;
+  min-width: 260px;
+}
+
+.hero-content h1 {
+  color: var(--text-gray);
+  font-size: 2.75rem;
+  line-height: 1.2;
+  font-weight: 700;
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.hero-content .lead {
+  color: var(--muted);
+  margin: 12px 0 28px;
+  text-align: left;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.cta-group {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.cta-primary {
+  background: var(--cta-bg);
+  color: var(--cta-text);
+  padding: 12px 28px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.cta-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(24, 0, 173, 0.3);
+}
+
+.cta-secondary {
+  background: transparent;
+  color: var(--cta-bg);
+  border: 2px solid var(--cta-bg);
+  padding: 10px 26px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.cta-secondary:hover {
+  background: var(--cta-bg);
+  color: var(--cta-text);
+  transform: translateY(-2px);
+}
+
+.hero-image {
+  flex: 1 1 320px;
+  min-width: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* SEÇÃO 2: BENEFÍCIOS */
+.benefits-section {
+  width: 100%;
+  margin-top: 64px;
+  text-align: center;
+}
+
+.benefits-section h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-gray);
+  margin-bottom: 40px;
+}
+
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  width: 100%;
+}
+
+.benefit-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 32px 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.benefit-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.benefit-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.benefit-card h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-gray);
+  margin-bottom: 12px;
+}
+
+.benefit-card p {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* SEÇÃO 3: COMO FUNCIONA */
+.how-it-works-section {
+  width: 100%;
+  margin-top: 64px;
+  text-align: center;
+}
+
+.how-it-works-section h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-gray);
+  margin-bottom: 48px;
+}
+
+.steps-container {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.step {
+  flex: 0 1 auto;
+  min-width: 140px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 10px;
+  padding: 24px 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.step:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: var(--gradient-1);
+  color: white;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.step h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-gray);
+  margin-bottom: 8px;
+}
+
+.step p {
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.step-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: var(--cta-bg);
+  font-weight: bold;
+  flex: 0 1 auto;
+  min-width: 30px;
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 768px) {
+  .hero-content h1 {
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  .hero-content .lead {
+    text-align: center;
+  }
+
+  .cta-group {
+    justify-content: center;
+  }
+
+  .cta-primary,
+  .cta-secondary {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+
+  .benefits-section h2,
+  .how-it-works-section h2 {
+    font-size: 1.5rem;
+  }
+
+  .benefit-card {
+    padding: 20px 16px;
+  }
+
+  .step {
+    min-width: 120px;
+    padding: 16px 12px;
+  }
+
+  .step-arrow {
+    transform: rotate(90deg);
+    margin: 8px 0;
+  }
+
+  .steps-container {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-content h1 {
+    font-size: 1.5rem;
+  }
+
+  .cta-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .cta-primary,
+  .cta-secondary {
+    width: 100%;
+    text-align: center;
+  }
+
+  .benefits-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .step {
+    min-width: 100%;
+  }
+
+  .step-arrow {
+    margin: 8px 0;
+  }
+}
+
 .slot-ocupado { background: #333; color: #fff; font-weight: bold; }
 .msg-ok { color: green; }
 .msg-err { color: #b00020; }

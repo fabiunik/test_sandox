@@ -67,19 +67,22 @@ if (session_status() === PHP_SESSION_NONE) {
             <h3>Explore</h3>
             <p>Navegue por serviços e profissionais especializados disponíveis na plataforma.</p>
           </div>
-          <div class="step-arrow">→</div>
+          <div class="step-arrow">↓</div>
+          
           <div class="step">
             <div class="step-number">2</div>
             <h3>Escolha</h3>
             <p>Veja perfis, especialidades, horários disponíveis e valores de cada profissional.</p>
           </div>
-          <div class="step-arrow">→</div>
+          <div class="step-arrow">↓</div>
+          
           <div class="step">
             <div class="step-number">3</div>
             <h3>Agende</h3>
             <p>Selecione a data e hora desejada, confirme sua escolha e faça seu pagamento. Receba confirmação de seu agendamento na plataforma.</p>
           </div>
-          <div class="step-arrow">→</div>
+          <div class="step-arrow">↓</div>
+          
           <div class="step">
             <div class="step-number">4</div>
             <h3>Atendimento</h3>

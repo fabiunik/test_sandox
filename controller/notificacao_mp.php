@@ -210,6 +210,7 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
                                            <p><strong>Data:</strong> $dataFmt<br><strong>Horário:</strong> $horaFmt<br><strong>Terapeuta:</strong> {$info['terapeuta_nome']}</p>";
                             
                             $mail->send();
+                            error_log("E-mail de confirmação enviado para cliente: {$info['cliente_email']}");
                             
                             // --- E-mail para o Terapeuta ---
                             $mail->clearAddresses(); // Limpa o destinatário anterior
@@ -218,6 +219,7 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
                             $mail->Body = "<h1>Olá, {$info['terapeuta_nome']}!</h1>
                                            <p>Você tem um novo atendimento confirmado: <strong>{$info['servico_nome']}</strong> com o cliente <strong>{$info['cliente_nome']}</strong> para o dia $dataFmt às $horaFmt.</p>";
                             $mail->send();
+                            error_log("E-mail de notificação enviado para terapeuta: {$info['terapeuta_email']}");
                         } catch (PHPMailerException $e) {
                             error_log("Erro ao enviar e-mail: {$mail->ErrorInfo}");
                         }

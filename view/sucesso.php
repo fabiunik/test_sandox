@@ -10,10 +10,7 @@ session_start();
 </head>
 <body>
     <div class="site">
-        <header>
-            <div class="logo">Aqui tem Terapia!</div>
-            <nav><a class="cta" href="tela_inicial.html">Início</a></nav>
-        </header>
+        <?php include 'header.php'; ?>
         <main>
             <section class="content" style="max-width: 600px; margin: 40px auto; text-align: center;">
                 <div style="font-size: 4rem;">🎉</div>

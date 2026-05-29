@@ -43,4 +43,29 @@ class AgendamentoTest extends TestCase {
         
         $this->assertTrue($resultado);
     }
+
+    public function testVerificarDisponibilidadeComConflito() {
+        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
+        
+        // Simula que o slot existe na tabela disponibilidade
+        $this->stmtMock->method('fetchColumn')
+            ->will($this->onConsecutiveCalls(1, 1)); // 1 para disponibilidade, 1 para agendamento ocupado
+
+        // Como o segundo fetchColumn retorna 1 (já existe agendamento), deve retornar false
+        $resultado = $this->agendamento->verificarDisponibilidade(1, '2025-01-01', '10:00:00', 60);
+        
+        $this->assertFalse($resultado);
+    }
+
+    public function testVerificarDisponibilidadeLivre() {
+        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
+        
+        // Simula que o slot existe mas não há agendamentos
+        $this->stmtMock->method('fetchColumn')
+            ->will($this->onConsecutiveCalls(1, 0)); 
+
+        $resultado = $this->agendamento->verificarDisponibilidade(1, '2025-01-01', '10:00:00', 60);
+        
+        $this->assertTrue($resultado);
+    }
 }

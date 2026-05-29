@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.0/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true">
     <testsuites>
-        <testsuite name="Unit">
-            <directory>tests/Unit</directory>
+        <testsuite name="Aqui Tem Terapia Test Suite">
+            <directory>testes</directory>
         </testsuite>
     </testsuites>
+
+    <php>
+        <!-- Define a chave de criptografia para o ambiente de teste -->
+        <env name="APP_KEY" value="12345678901234567890123456789012"/>
+        <env name="MAILTRAP_HOST" value="localhost"/>
+        <!-- Evita que o envio real de e-mail seja tentado durante testes unitários -->
+        <env name="MAILTRAP_ENCRYPTION" value="none"/>
+    </php>
 </phpunit>

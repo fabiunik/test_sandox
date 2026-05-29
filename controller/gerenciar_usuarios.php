@@ -239,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $dadosUsuarioEnc = $usuario->buscarPorToken($token);
             if ($dadosUsuarioEnc) {
-                $usuario->atualizarSenhaToken($dadosUsuarioEnc['id'], password_hash($novaSenha, PASSWORD_DEFAULT));
+                $usuario->atualizarSenhaToken($dadosUsuarioEnc['id'], password_hash($novaSenha, PASSWORD_ARGON2ID));
                 $_SESSION['success'] = "Senha redefinida com sucesso!";
                 header("Location: ../view/login.php");
                 exit;

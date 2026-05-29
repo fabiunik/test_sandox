@@ -112,6 +112,9 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
     $agendamentoModel = new Agendamento($pdo);
 
     try {
+        // 1. Processamento de Banco de Dados (Transacional)
+        $pdo->beginTransaction();
+
         // Verifica se já registramos esse pagamento para evitar erro de duplicidade
         $pagamentoExistente = $pagamentoModel->buscarPorTransacaoId($id);
         if (!$pagamentoExistente) {
@@ -128,24 +131,25 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
             error_log("Status da transação $id atualizado para $status_mp.");
         }
 
+        $processarNotificacoes = false;
         // 2. Se aprovado, atualiza o pedido e os agendamentos vinculados
         if ($status_mp === 'approved') {
-            // ATUALIZAÇÃO ATÔMICA: Tenta mudar para 'pago' apenas se ainda for 'pendente'
-            // Isso impede que múltiplas notificações simultâneas do MP disparem e-mails duplicados
             $stmtCheck = $pdo->prepare("UPDATE pedido SET status = 'pago' WHERE id = ? AND status = 'pendente'");
             $stmtCheck->execute([$pedido_id]);
-
-            if ($stmtCheck->rowCount() === 0) {
-                error_log("Pedido #$pedido_id já processado ou em estado que não permite atualização. Encerrando disparos.");
-                http_response_code(200);
-                exit;
-            }
 
             // Usamos 'pago' também para agendamento para evitar erro de tamanho de coluna (Data truncated)
             // e garantir consistência com a tabela pedido.
             $pdo->prepare("UPDATE agendamento SET status = 'pago' WHERE pedido_id = ?")
                 ->execute([$pedido_id]);
+            
+            if ($stmtCheck->rowCount() > 0) {
+                $processarNotificacoes = true;
+            }
+        }
+        $pdo->commit();
 
+        // 3. Envio de Notificações (E-mail) - Fora da transação principal
+        if ($processarNotificacoes) {
             // NOVO: Buscar e-mails e detalhes para envio de confirmação
             $sqlInfo = "SELECT 
                             a.data, a.horario, i.nome as servico_nome,
@@ -160,6 +164,10 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
             $stmtInfo = $pdo->prepare($sqlInfo);
             $stmtInfo->execute([$pedido_id]);
             $detalhesNotificacao = $stmtInfo->fetchAll(PDO::FETCH_ASSOC);
+            
+            try {
+                if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+                    $smtp_host = getenv('MAILTRAP_HOST');
 
             // Com o autoloader carregado no topo, apenas verificamos se a classe está disponível
             if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {

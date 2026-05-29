@@ -8,16 +8,25 @@ class Agendamento {
     }
 
     public function criar($usuario_id, $terapeuta_id, $item_id, $data, $horario, $duracao, $preco, $observacoes = null, $status = 'pendente', $pedido_id = null) {
-        // Verificar se o horário está disponível
-        if (!$this->verificarDisponibilidade($terapeuta_id, $data, $horario, $duracao)) {
-            throw new Exception("Horário não disponível.");
-        }
+        $this->con->beginTransaction();
+        try {
+            // Verificar se o horário está disponível com bloqueio (FOR UPDATE)
+            if (!$this->verificarDisponibilidade($terapeuta_id, $data, $horario, $duracao, true)) {
+                throw new Exception("Horário não disponível.");
+            }
 
-        $stmt = $this->con->prepare(
-            "INSERT INTO agendamento (usuario_id, terapeuta_id, itens_id, data, horario, duracao, preco, observacoes, status, pedido_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        );
-        $stmt->execute([$usuario_id, $terapeuta_id, $item_id, $data, $horario, $duracao, $preco, $observacoes, $status, $pedido_id]);
-        return $this->con->lastInsertId();
+            $stmt = $this->con->prepare(
+                "INSERT INTO agendamento (usuario_id, terapeuta_id, itens_id, data, horario, duracao, preco, observacoes, status, pedido_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            );
+            $stmt->execute([$usuario_id, $terapeuta_id, $item_id, $data, $horario, $duracao, $preco, $observacoes, $status, $pedido_id]);
+            
+            $id = $this->con->lastInsertId();
+            $this->con->commit();
+            return $id;
+        } catch (Exception $e) {
+            if ($this->con->inTransaction()) $this->con->rollBack();
+            throw $e;
+        }
     }
 
     public function buscarPorId($id) {
@@ -49,23 +58,25 @@ class Agendamento {
         return $stmt->execute([$pedido_id, $agendamento_id]);
     }
 
-    public function verificarDisponibilidade($terapeuta_id, $data, $horario, $duracao) {
+    public function verificarDisponibilidade($terapeuta_id, $data, $horario, $duracao, $lock = false) {
         $slotsNeeded = max(1, (int) ceil($duracao / 60));
         $startTimestamp = strtotime("{$data} {$horario}");
         if ($startTimestamp === false) {
             return false;
         }
 
+        $sqlLock = $lock ? " FOR UPDATE" : "";
+
         for ($slot = 0; $slot < $slotsNeeded; $slot++) {
             $slotHorario = date('H:i:s', strtotime("+{$slot} hour", $startTimestamp));
 
-            $stmtDisp = $this->con->prepare("SELECT COUNT(*) FROM disponibilidade WHERE terapeuta_id = ? AND data = ? AND horario = ?");
+            $stmtDisp = $this->con->prepare("SELECT COUNT(*) FROM disponibilidade WHERE terapeuta_id = ? AND data = ? AND horario = ?" . $sqlLock);
             $stmtDisp->execute([$terapeuta_id, $data, $slotHorario]);
             if ($stmtDisp->fetchColumn() == 0) {
                 return false;
             }
 
-            $stmtAg = $this->con->prepare("SELECT COUNT(*) FROM agendamento WHERE terapeuta_id = ? AND data = ? AND horario = ? AND status != 'cancelado'");
+            $stmtAg = $this->con->prepare("SELECT COUNT(*) FROM agendamento WHERE terapeuta_id = ? AND data = ? AND horario = ? AND status != 'cancelado'" . $sqlLock);
             $stmtAg->execute([$terapeuta_id, $data, $slotHorario]);
             if ($stmtAg->fetchColumn() > 0) {
                 return false;

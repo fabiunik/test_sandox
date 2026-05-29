@@ -5,7 +5,7 @@ require_once '../model/Disponibilidade.php';
 
 // Verificação de Segurança
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.html");
+    header("Location: login.php");
     exit;
 }
 

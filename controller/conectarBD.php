@@ -31,6 +31,11 @@ $pass = getenv('MYSQLPASSWORD') ?: getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? '')
 $port = getenv('MYSQLPORT') ?: getenv('DB_PORT') ?: ($_ENV['DB_PORT'] ?? '3306');
 $key  = getenv('APP_KEY') ?: ($_ENV['APP_KEY'] ?? '');
 
+// Validação da Chave de Criptografia (Requisito para AES-256-GCM)
+if (empty($key) || strlen($key) < 32) {
+    die("Erro Crítico: A chave de criptografia (APP_KEY) não está configurada ou possui tamanho insuficiente (mínimo 32 caracteres).");
+}
+
 try {
     $pdo = new PDO("mysql:host=$host;port=$port;dbname=$db;charset=utf8", $user, $pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

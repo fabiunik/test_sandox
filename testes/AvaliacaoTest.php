@@ -47,4 +47,13 @@ class AvaliacaoTest extends TestCase {
         $this->assertEquals('Muito bom', $resultado[0]['comentario']);
         $this->assertEquals('Cliente Teste', $resultado[0]['nome']);
     }
+
+    public function testVerificarAvaliacaoExistente() {
+        $this->pdoMock->method('prepare')->willReturn($this->stmtMock);
+        $this->stmtMock->method('execute')->willReturn(true);
+        $this->stmtMock->method('fetch')->willReturn(['id' => 99]);
+
+        $resultado = $this->avaliacao->verificarAvaliacao(5);
+        $this->assertTrue($resultado);
+    }
 }

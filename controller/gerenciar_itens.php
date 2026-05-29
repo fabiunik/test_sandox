@@ -5,7 +5,7 @@ require_once '../model/Item.php';
 
 // Verificação de Segurança
 if (!isset($_SESSION['usuario_id'])) {
-    header("Location: login.html");
+    header("Location: login.php");
     exit;
 }
 
@@ -58,23 +58,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $valor = $_POST['valor'];
 
         if (!empty($_FILES['imagem']['name'])) {
-            // Busca imagem antiga para deletar do servidor
-            $stmtImg = $pdo->prepare("SELECT imagem FROM itens WHERE id = ? AND terapeuta_id = ?");
-            $stmtImg->execute([$id, $usuarioLogadoId]);
-            $itemAntigo = $stmtImg->fetch();
-
-            if ($itemAntigo && $itemAntigo['imagem'] && file_exists("../" . $itemAntigo['imagem'])) {
-                unlink("../" . $itemAntigo['imagem']);
-            }
-
             // Sobe a nova imagem
             $targetDir = "../uploads/";
             if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
             $fileName = time() . "_" . basename($_FILES["imagem"]["name"]);
-            move_uploaded_file($_FILES["imagem"]["tmp_name"], $targetDir . $fileName);
-            $novoCaminho = "uploads/" . $fileName;
+            
+            if (move_uploaded_file($_FILES["imagem"]["tmp_name"], $targetDir . $fileName)) {
+                $novoCaminho = "uploads/" . $fileName;
 
-            $itemModel->editar($id, $nome, $descricao, $valor, $novoCaminho, $usuarioLogadoId);
+                // Só busca e exclui a imagem antiga se o upload da nova deu certo
+                $stmtImg = $pdo->prepare("SELECT imagem FROM itens WHERE id = ? AND terapeuta_id = ?");
+                $stmtImg->execute([$id, $usuarioLogadoId]);
+                $itemAntigo = $stmtImg->fetch();
+
+                if ($itemAntigo && $itemAntigo['imagem'] && file_exists("../" . $itemAntigo['imagem'])) {
+                    unlink("../" . $itemAntigo['imagem']);
+                }
+
+                $itemModel->editar($id, $nome, $descricao, $valor, $novoCaminho, $usuarioLogadoId);
+            }
         } else { // Update sem mexer na imagem
             $itemModel->editar($id, $nome, $descricao, $valor, null, $usuarioLogadoId);
         }

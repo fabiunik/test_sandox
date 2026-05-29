@@ -23,8 +23,19 @@ $mensagem_erro = "";
 // Instanciar ItemModel
 $itemModel = new Item($pdo);
 
+// Gera token CSRF se não existir
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // --- PROCESSAMENTO DE FORMULÁRIOS (POST) ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    // Validação CSRF
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        header("Location: " . $_SERVER['PHP_SELF'] . "?msg=erro_csrf");
+        exit;
+    }
     
     // 1. CADASTRAR NOVO SERVIÇO
     if (isset($_POST['acao']) && $_POST['acao'] === 'cadastrar') {
@@ -33,15 +44,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $valor = $_POST['valor'];
         $imagem = null;
 
+        // Validação Backend para CTS005
+        if (empty($nome) || empty($valor)) {
+            header("Location: " . $_SERVER['PHP_SELF'] . "?msg=erro_campos");
+            exit;
+        }
+
         if (!empty($_FILES['imagem']['name'])) {
             $targetDir = "../uploads/";
-            if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
-            
-            $fileName = time() . "_" . basename($_FILES["imagem"]["name"]);
-            $targetFile = $targetDir . $fileName;
-            
-            if (move_uploaded_file($_FILES["imagem"]["tmp_name"], $targetFile)) {
-                $imagem = "uploads/" . $fileName;
+
+            // Validação de Formato (CTS032)
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            $fileType = mime_content_type($_FILES['imagem']['tmp_name']);
+
+            if (!in_array($fileType, $allowedTypes)) {
+                header("Location: " . $_SERVER['PHP_SELF'] . "?msg=erro_formato");
+                exit;
+            } else {
+                if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+                $fileName = time() . "_" . basename($_FILES["imagem"]["name"]);
+                $targetFile = $targetDir . $fileName;
+                
+                if (move_uploaded_file($_FILES["imagem"]["tmp_name"], $targetFile)) {
+                    $imagem = "uploads/" . $fileName;
+                }
             }
         }
 
@@ -57,13 +83,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $descricao = $_POST['descricao'];
         $valor = $_POST['valor'];
 
+        // Validação Backend para CTS005
+        if (empty($id) || empty($nome) || empty($valor)) {
+            header("Location: " . $_SERVER['PHP_SELF'] . "?msg=erro_campos");
+            exit;
+        }
+
         if (!empty($_FILES['imagem']['name'])) {
             // Sobe a nova imagem
             $targetDir = "../uploads/";
-            if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
-            $fileName = time() . "_" . basename($_FILES["imagem"]["name"]);
-            
-            if (move_uploaded_file($_FILES["imagem"]["tmp_name"], $targetDir . $fileName)) {
+
+            // Validação de Formato (CTS032)
+            $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            $fileType = mime_content_type($_FILES['imagem']['tmp_name']);
+
+            if (!in_array($fileType, $allowedTypes)) {
+                header("Location: " . $_SERVER['PHP_SELF'] . "?msg=erro_formato");
+                exit;
+            } else {
+                if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+                $fileName = time() . "_" . basename($_FILES["imagem"]["name"]);
+                
+                if (move_uploaded_file($_FILES["imagem"]["tmp_name"], $targetDir . $fileName)) {
                 $novoCaminho = "uploads/" . $fileName;
 
                 // Só busca e exclui a imagem antiga se o upload da nova deu certo
@@ -76,6 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $itemModel->editar($id, $nome, $descricao, $valor, $novoCaminho, $usuarioLogadoId);
+                }
             }
         } else { // Update sem mexer na imagem
             $itemModel->editar($id, $nome, $descricao, $valor, null, $usuarioLogadoId);
@@ -91,12 +133,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtImg->execute([$id, $usuarioLogadoId]);
         $item = $stmtImg->fetch();
 
-        if ($item && $item['imagem'] && file_exists("../" . $item['imagem'])) {
-            unlink("../" . $item['imagem']);
+        if ($item) {
+            if ($item['imagem'] && file_exists("../" . $item['imagem'])) {
+                unlink("../" . $item['imagem']);
+            }
+            $itemModel->excluir($id);
+            header("Location: " . $_SERVER['PHP_SELF'] . "?msg=excluido");
+        } else {
+            header("Location: " . $_SERVER['PHP_SELF'] . "?msg=erro_csrf");
         }
-
-        $itemModel->excluir($id, $usuarioLogadoId);
-        header("Location: " . $_SERVER['PHP_SELF'] . "?msg=excluido");
         exit;
     }
 }
@@ -106,6 +151,9 @@ if (isset($_GET['msg'])) {
     if ($_GET['msg'] == 'cadastrado') $mensagem_sucesso = "Serviço cadastrado com sucesso!";
     if ($_GET['msg'] == 'editado') $mensagem_sucesso = "Serviço atualizado com sucesso!";
     if ($_GET['msg'] == 'excluido') $mensagem_sucesso = "Serviço e imagem removidos!";
+    if ($_GET['msg'] == 'erro_campos') $mensagem_erro = "Erro: Campos obrigatórios não preenchidos.";
+    if ($_GET['msg'] == 'erro_formato') $mensagem_erro = "Erro: Formato de imagem inválido (Use JPG, PNG ou WEBP).";
+    if ($_GET['msg'] == 'erro_csrf') $mensagem_erro = "Erro de segurança: Token inválido.";
 }
 
 // --- LÓGICA DE PAGINAÇÃO ---
@@ -150,6 +198,7 @@ $itens = $itemModel->listarPorTerapeuta($usuarioLogadoId, $itensPorPagina, $offs
             <h3 style="margin-top:0">Cadastrar Novo Serviço</h3>
             <form method="post" enctype="multipart/form-data">
                 <input type="hidden" name="acao" value="cadastrar">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                 <div class="form-group">
                     <label>Nome do Serviço</label>
                     <input type="text" name="nome" placeholder="Ex: Psicoterapia Individual" required>
@@ -203,6 +252,7 @@ $itens = $itemModel->listarPorTerapeuta($usuarioLogadoId, $itensPorPagina, $offs
                             <form method="post" onsubmit="return confirm('Excluir este serviço permanentemente?')">
                                 <input type="hidden" name="acao" value="excluir">
                                 <input type="hidden" name="id" value="<?php echo $item['id']; ?>">
+                                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                                 <button type="submit" class="btn-action btn-delete" style="background:#e74c3c; color:white;">🗑️ Excluir</button>
                             </form>
                         </td>
@@ -223,6 +273,7 @@ $itens = $itemModel->listarPorTerapeuta($usuarioLogadoId, $itensPorPagina, $offs
             <form method="post" enctype="multipart/form-data">
                 <input type="hidden" name="acao" value="editar">
                 <input type="hidden" name="id" id="edit_id">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                 
                 <div class="form-group">
                     <label>Nome do Serviço</label>

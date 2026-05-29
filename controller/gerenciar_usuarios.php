@@ -43,6 +43,13 @@ if (isset($_GET['acao']) && $_GET['acao'] === 'confirmar_email' && isset($_GET['
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $acao = $_POST['acao'] ?? '';
 
+    // Validação de CSRF para ações sensíveis (CTS040)
+    if (in_array($acao, ['editar', 'excluir', 'editar_tipo', 'alterar_status', 'redefinir_senha']) && (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token'])) {
+        $_SESSION['error'] = "Erro de autenticidade da requisição. Tente novamente.";
+        header("Location: ../view/login.php");
+        exit;
+    }
+
     try {
         if ($acao === 'criar') {
             // Validação de confirmação de senha
@@ -106,10 +113,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($acao === 'editar') {
             // Usuário pode editar o próprio perfil
             if (!isset($_SESSION['usuario_id'])) {
-                throw new Exception("Você precisa estar logado para editar seu perfil.");
+                throw new Exception("Sessão expirada ou acesso negado. Por favor, faça login novamente.");
             }
             if ($_SESSION['usuario_id'] != $_POST['usuario_id']) {
-                throw new Exception("Você só pode editar o seu próprio perfil.");
+                throw new Exception("Você não tem permissão para alterar os dados de outro usuário.");
             }
 
             $usuario->editar(

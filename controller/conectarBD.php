@@ -33,7 +33,14 @@ $key  = getenv('APP_KEY') ?: ($_ENV['APP_KEY'] ?? '');
 
 // Validação da Chave de Criptografia (Requisito para AES-256-GCM)
 if (empty($key) || strlen($key) < 32) {
-    die("Erro Crítico: A chave de criptografia (APP_KEY) não está configurada ou possui tamanho insuficiente (mínimo 32 caracteres).");
+    $error_msg = "ERRO CRÍTICO: APP_KEY não configurada corretamente. ";
+    if (empty($key)) {
+        $error_msg .= "A variável está vazia.";
+    } else {
+        $error_msg .= "Tamanho atual: " . strlen($key) . " caracteres (mínimo 32).";
+    }
+    error_log($error_msg);
+    die($error_msg);
 }
 
 try {

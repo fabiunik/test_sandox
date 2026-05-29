@@ -159,6 +159,7 @@ $total_usuarios_comuns = count(array_filter($usuarios, fn($u) => $u['tipo'] === 
                                         <form action="../controller/gerenciar_usuarios.php" method="POST" style="display:inline;">
                                             <input type="hidden" name="acao" value="alterar_status">
                                             <input type="hidden" name="usuario_id" value="<?php echo $usuario['id']; ?>">
+                                            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                                             <?php if($usuario['status'] === 'ativo'): ?>
                                                 <input type="hidden" name="status" value="inativo">
                                                 <button type="submit" class="btn-action" style="color:#dc3545; border-color:#f5c6cb;">🚫 Inativar</button>
@@ -197,6 +198,7 @@ $total_usuarios_comuns = count(array_filter($usuarios, fn($u) => $u['tipo'] === 
         <form action="../controller/gerenciar_usuarios.php" method="post">
             <input type="hidden" name="acao" value="editar_tipo">
             <input type="hidden" name="usuario_id" id="edit_usuario_id">
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
             <div class="form-group">
                 <label>Nome</label>

@@ -20,6 +20,11 @@ if (!$usuario) {
     exit;
 }
 
+// Gera token CSRF se não existir
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // Descriptografar dados sensíveis se necessário
 // (Dependendo da sua implementação)
 
@@ -75,6 +80,7 @@ unset($_SESSION['success'], $_SESSION['error']);
         <form class="form" action="../controller/gerenciar_usuarios.php" method="post">
           <input type="hidden" name="acao" value="editar">
           <input type="hidden" name="usuario_id" value="<?php echo $usuario['id']; ?>">
+          <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
           <div class="input-group">
             <label for="nome">Nome Completo</label>
@@ -111,6 +117,7 @@ unset($_SESSION['success'], $_SESSION['error']);
           <form class="form" action="../controller/gerenciar_usuarios.php" method="post">
             <input type="hidden" name="acao" value="redefinir_senha">
             <input type="hidden" name="usuario_id" value="<?php echo $usuario['id']; ?>">
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
             <div class="input-group">
               <label for="senha-atual">Senha Atual</label>

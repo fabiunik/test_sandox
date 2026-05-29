@@ -55,12 +55,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $horario_fim = $_POST['horario_fim'] ?? '';
         $tipo = $_POST['tipo'] ?? 'presencial';
 
-        if ($data && $horario_inicio && $horario_fim) {
+        $inicio = strtotime($horario_inicio);
+        $fim = strtotime($horario_fim);
+
+        if ($data && $inicio && $fim) {
+            if ($fim <= $inicio) {
+                $_SESSION['mensagem_erro'] = "Erro: O horário de término deve ser posterior ao horário de início.";
+                header("Location: " . $_SERVER['PHP_SELF']);
+                exit;
+            }
+
             $duracao = $config['duracao_sessao'];
             $intervalo = $config['intervalo_sessoes'];
+            
+            // Garante que o passo do loop seja no mínimo 15 minutos para evitar loop infinito
+            $passo = max(15, ($duracao + $intervalo));
 
-            $inicio = strtotime($horario_inicio);
-            $fim = strtotime($horario_fim);
             $horario_atual = $inicio;
             $slots = 0;
 
@@ -69,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($disponibilidadeModel->adicionarSlot($usuarioLogadoId, $data, $horario_slot, $tipo)) {
                     $slots++;
                 }
-                $horario_atual += ($duracao + $intervalo) * 60;
+                $horario_atual += $passo * 60;
             }
 
             $mensagem = "Foram adicionados $slots slots de disponibilidade!";

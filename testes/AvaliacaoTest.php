@@ -19,7 +19,8 @@ class AvaliacaoTest extends TestCase {
         // Verificamos se o execute recebe os parâmetros tratados (item_id como null se for 0)
         $this->stmtMock->method('execute')->with([
             1,    // usuario_id
-            null, // item_id (devido ao operador ?: no model)
+            null, // item_id
+            null, // agendamento_id (ID opcional não passado no teste)
             2,    // terapeuta_id
             5,    // nota
             'Excelente atendimento' // comentario

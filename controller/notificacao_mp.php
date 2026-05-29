@@ -165,15 +165,11 @@ if ($id && ($topic === 'payment' || $topic === 'merchant_order')) {
             $stmtInfo->execute([$pedido_id]);
             $detalhesNotificacao = $stmtInfo->fetchAll(PDO::FETCH_ASSOC);
             
-            try {
-                if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
-                    $smtp_host = getenv('MAILTRAP_HOST');
-
             // Com o autoloader carregado no topo, apenas verificamos se a classe está disponível
             if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
                 $smtp_host = getenv('MAILTRAP_HOST');
                 if (empty($smtp_host)) {
-                    error_log("Aviso: Variáveis MAILTRAP_HOST não configuradas. Pulando envio de e-mail.");
+                    error_log("Aviso: Variável MAILTRAP_HOST não configurada. Pulando envio de e-mail.");
                 } else {
                     $mail = new PHPMailer(true);
                     

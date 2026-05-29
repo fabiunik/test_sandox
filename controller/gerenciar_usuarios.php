@@ -20,6 +20,13 @@ require_once __DIR__ . '/../model/Usuario.php';
 
 $usuario = new Usuario($pdo);
 
+// Detecta a URL base do sistema
+$protocol = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')) ? 'https://' : 'http://';
+$host = $_SERVER['HTTP_HOST'];
+// Tenta usar a variável de ambiente BASE_URL se definida, caso contrário detecta dinamicamente
+$baseUrlEnv = getenv('BASE_URL') ?: ($_ENV['BASE_URL'] ?? null);
+$baseUrl = $baseUrlEnv ? rtrim($baseUrlEnv, '/') : $protocol . $host . rtrim(str_replace('\\', '/', dirname($_SERVER['REQUEST_URI'], 2)), '/');
+
 // Tratamento de confirmação de e-mail via GET
 if (isset($_GET['acao']) && $_GET['acao'] === 'confirmar_email' && isset($_GET['token'])) {
     if ($usuario->confirmarEmail($_GET['token'])) {
@@ -70,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $mail->isHTML(true);
                 $mail->Subject = 'Confirme seu cadastro — Aqui tem Terapia';
-                $link = "https://testsandox-staging.up.railway.app/controller/gerenciar_usuarios.php?acao=confirmar_email&token=$tokenConfirmacao";
+                $link = $baseUrl . "/controller/gerenciar_usuarios.php?acao=confirmar_email&token=$tokenConfirmacao";
                 
                 $mail->Body = "<h1>Quase lá!</h1><p>Clique no link abaixo para confirmar seu e-mail e ativar sua conta:</p><a href='$link'>Ativar minha conta</a>";
                 $mail->send();
@@ -202,7 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         // Conteúdo do E-mail
                         $mail->isHTML(true);
                         $mail->Subject = 'Recuperacao de Senha - Aqui tem Terapia!';
-                        $recoveryLink = "https://testsandox-staging.up.railway.app/view/redefinir_senha.php?token=$token";
+                        $recoveryLink = $baseUrl . "/view/redefinir_senha.php?token=$token";
                         
                         $mail->Body    = "Olá,<br><br>Recebemos uma solicitação para redefinir sua senha. Por favor, clique no link abaixo para criar uma nova senha:<br><br><a href=\"$recoveryLink\">$recoveryLink</a><br><br>Se você não solicitou isso, pode ignorar este e-mail.<br><br>Atenciosamente,<br>Equipe Aqui tem Terapia!";
                         $mail->AltBody = "Olá,\n\nRecebemos uma solicitação para redefinir sua senha. Por favor, copie e cole o link abaixo em seu navegador para criar uma nova senha:\n\n$recoveryLink\n\nSe você não solicitou isso, pode ignorar este e-mail.\n\nAtenciosamente,\nEquipe Aqui tem Terapia!";

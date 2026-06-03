@@ -7,6 +7,11 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['tipo'] !== 'administrador') {
     exit;
 }
 
+// ====== INICIALIZAR CSRF TOKEN ======
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 require_once __DIR__ . '/../controller/conectarBD.php';
 require_once __DIR__ . '/../model/Usuario.php';
 
@@ -87,7 +92,7 @@ $usuariosExibir = array_slice($usuarios, $offset, $itensPorPagina);
 
         <!-- HEADER -->
         <div class="header-section">
-            <h2>🔑 Painel Administrativo</h2>
+            <h1>🔑 Painel Administrativo</h1>
             <p class="subtitle">Bem-vindo, <?php echo htmlspecialchars($usuarioAtual['nome']); ?></p>
         </div>
 
@@ -107,7 +112,7 @@ $usuariosExibir = array_slice($usuarios, $offset, $itensPorPagina);
             </div>
             <div class="stat-card">
                 <h3><?php echo $total_usuarios_comuns; ?></h3>
-                <p>Usuários</p>
+                <p>Usuários Comuns</p>
             </div>
         </div>
 
@@ -124,13 +129,13 @@ $usuariosExibir = array_slice($usuarios, $offset, $itensPorPagina);
                     <option value="administrador" <?php echo $filtro_tipo === 'administrador' ? 'selected' : ''; ?>>Administrador</option>
                 </select>
 
-                <button type="submit">🔍 Buscar</button>
+                <button type="submit" class="btn-search">🔍 Buscar</button>
                 <a href="?" class="filter-link">Limpar</a>
             </form>
         </div>
 
         <!-- TABELA DE USUÁRIOS -->
-        <div class="container">
+        <div class="table-wrapper">
             <table>
                 <thead>
                     <tr>
@@ -166,9 +171,9 @@ $usuariosExibir = array_slice($usuarios, $offset, $itensPorPagina);
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <div style="display:flex; gap:5px;">
+                                    <div class="btn-actions-group">
                                         <button class="btn-action btn-edit" onclick="openEditModal(<?php echo htmlspecialchars(json_encode($usuario)); ?>)">✏️ Cargo</button>
-                                        <form action="../controller/gerenciar_usuarios.php" method="POST" style="display:inline;">
+                                        <form action="../controller/gerenciar_usuarios.php" method="POST" class="btn-form">
                                             <input type="hidden" name="acao" value="alterar_status">
                                             <input type="hidden" name="usuario_id" value="<?php echo $usuario['id']; ?>">
                                             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
@@ -196,15 +201,15 @@ $usuariosExibir = array_slice($usuarios, $offset, $itensPorPagina);
 
             <!-- CONTROLES DE PAGINAÇÃO -->
             <?php if ($totalPaginas > 1): ?>
-                <div class="pagination" style="display: flex; justify-content: center; gap: 15px; margin-top: 25px; align-items: center;">
+                <div class="pagination">
                     <?php if ($paginaAtual > 1): ?>
-                        <a href="?p=<?php echo $paginaAtual - 1; ?>&busca=<?php echo urlencode($busca); ?>&tipo=<?php echo urlencode($filtro_tipo); ?>" class="btn-secondary" style="text-decoration: none;">← Anterior</a>
+                        <a href="?p=<?php echo $paginaAtual - 1; ?>&busca=<?php echo urlencode($busca); ?>&tipo=<?php echo urlencode($filtro_tipo); ?>" class="btn-secondary">← Anterior</a>
                     <?php endif; ?>
                     
-                    <span style="font-weight: bold; color: var(--muted);">Página <?php echo $paginaAtual; ?> de <?php echo $totalPaginas; ?></span>
+                    <span>Página <?php echo $paginaAtual; ?> de <?php echo $totalPaginas; ?></span>
 
                     <?php if ($paginaAtual < $totalPaginas): ?>
-                        <a href="?p=<?php echo $paginaAtual + 1; ?>&busca=<?php echo urlencode($busca); ?>&tipo=<?php echo urlencode($filtro_tipo); ?>" class="btn-secondary" style="text-decoration: none;">Próxima →</a>
+                        <a href="?p=<?php echo $paginaAtual + 1; ?>&busca=<?php echo urlencode($busca); ?>&tipo=<?php echo urlencode($filtro_tipo); ?>" class="btn-secondary">Próxima →</a>
                     <?php endif; ?>
                 </div>
             <?php endif; ?>

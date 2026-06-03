@@ -170,7 +170,7 @@ $usuariosExibir = array_slice($usuarios, $offset, $itensPorPagina);
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-actions-group">
-                                        <button class="btn-action btn-edit" onclick="openEditModal(<?php echo htmlspecialchars(json_encode($usuario)); ?>)">✏️ Cargo</button>
+                                        <button class="btn-action btn-edit" onclick="openEditModal('<?php echo htmlspecialchars(json_encode($usuario), ENT_QUOTES, 'UTF-8'); ?>')" type="button">✏️ Cargo</button>
                                         <form action="../controller/gerenciar_usuarios.php" method="POST" class="btn-form">
                                             <input type="hidden" name="acao" value="alterar_status">
                                             <input type="hidden" name="usuario_id" value="<?php echo $usuario['id']; ?>">
@@ -258,12 +258,18 @@ $usuariosExibir = array_slice($usuarios, $offset, $itensPorPagina);
   </div>
 
   <script>
-    function openEditModal(usuario) {
-        document.getElementById('edit_usuario_id').value = usuario.id;
-        document.getElementById('edit_nome').value = usuario.nome;
-        document.getElementById('edit_email').value = usuario.email;
-        document.getElementById('edit_tipo').value = usuario.tipo;
-        document.getElementById('editModal').classList.add('active');
+    function openEditModal(usuarioJson) {
+        try {
+            const usuario = JSON.parse(usuarioJson);
+            document.getElementById('edit_usuario_id').value = usuario.id;
+            document.getElementById('edit_nome').value = usuario.nome;
+            document.getElementById('edit_email').value = usuario.email;
+            document.getElementById('edit_tipo').value = usuario.tipo;
+            document.getElementById('editModal').classList.add('active');
+        } catch(e) {
+            console.error('Erro ao abrir modal:', e);
+            alert('Erro ao abrir modal de edição');
+        }
     }
 
     function closeEditModal() {

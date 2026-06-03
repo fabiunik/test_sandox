@@ -268,14 +268,15 @@ class Usuario {
     }
 
     // Atualizar tipo de usuário (apenas admin)
+    // NOTA: Validação de permissão deve ser feita no controller
     public function atualizarTipo($usuario_id, $novo_tipo) {
-        if(!$this->ehAdministrador()) {
-            throw new Exception("Permissão negada!");
+        if (!in_array($novo_tipo, ['usuario', 'terapeuta', 'administrador'])) {
+            throw new Exception("Tipo de usuário inválido.");
         }
 
         $stmt = $this->con->prepare("UPDATE usuario SET tipo = ? WHERE id = ?");
 
-        if($stmt->execute([$novo_tipo, $usuario_id])) {
+        if ($stmt->execute([$novo_tipo, $usuario_id])) {
             return true;
         } else {
             throw new Exception("Erro ao atualizar tipo.");
@@ -283,12 +284,17 @@ class Usuario {
     }
 
     // Alternar status (apenas admin)
+    // NOTA: Validação de permissão deve ser feita no controller
     public function atualizarStatus($usuario_id, $novo_status) {
-        if(!$this->ehAdministrador()) {
-            throw new Exception("Permissão negada!");
+        if (!in_array($novo_status, ['ativo', 'inativo'])) {
+            throw new Exception("Status inválido.");
         }
         $stmt = $this->con->prepare("UPDATE usuario SET status = ? WHERE id = ?");
-        return $stmt->execute([$novo_status, $usuario_id]);
+        if ($stmt->execute([$novo_status, $usuario_id])) {
+            return true;
+        } else {
+            throw new Exception("Erro ao atualizar status.");
+        }
     }
 
     // Deletar usuário

@@ -211,7 +211,7 @@ $usuariosExibir = array_slice($usuarios, $offset, $itensPorPagina);
         </div>
     </main>
 
-    <?php include $view_path . 'footer.php'; ?>
+    <?php include __DIR__ . '/footer.php'; ?>
   </div>
 
   <!-- MODAL DE EDIÇÃO -->

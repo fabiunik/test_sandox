@@ -139,7 +139,6 @@ $usuariosExibir = array_slice($usuarios, $offset, $itensPorPagina);
                     <tr>
                         <th>Nome</th>
                         <th>E-mail</th>
-                        <th>Telefone</th>
                         <th>Tipo</th>
                         <th>Status</th>
                         <th class="text-center">Ações</th>
@@ -153,7 +152,6 @@ $usuariosExibir = array_slice($usuarios, $offset, $itensPorPagina);
                                     <strong><?php echo htmlspecialchars($usuario['nome']); ?></strong>
                                 </td>
                                 <td><?php echo htmlspecialchars($usuario['email']); ?></td>
-                                <td><?php echo htmlspecialchars($usuario['telefone']); ?></td>
                                 <td>
                                     <?php if ($usuario['tipo'] === 'administrador'): ?>
                                         <span class="badge badge-adm">Administrador</span>
@@ -189,7 +187,7 @@ $usuariosExibir = array_slice($usuarios, $offset, $itensPorPagina);
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="6" class="empty-message">
+                            <td colspan="5" class="empty-message">
                                 Nenhum usuário encontrado
                             </td>
                         </tr>

@@ -10,6 +10,10 @@ if (!isset($_SESSION['usuario_id']) || $_SESSION['tipo'] !== 'administrador') {
 require_once __DIR__ . '/../controller/conectarBD.php';
 require_once __DIR__ . '/../model/Usuario.php';
 
+
+$no_controller = (basename(dirname($_SERVER['PHP_SELF'])) === 'controller');
+$view_path = $no_controller ? '../view/' : '';
+
 $usuarioModel = new Usuario($pdo);
 $usuarioAtual = $usuarioModel->obterPorId($_SESSION['usuario_id']);
 
@@ -49,6 +53,14 @@ $total_usuarios = count($usuarios);
 $total_admins = count(array_filter($usuarios, fn($u) => $u['tipo'] === 'administrador'));
 $total_terapeutas = count(array_filter($usuarios, fn($u) => $u['tipo'] === 'terapeuta'));
 $total_usuarios_comuns = count(array_filter($usuarios, fn($u) => $u['tipo'] === 'usuario'));
+
+// ====== LÓGICA DE PAGINAÇÃO ======
+$itensPorPagina = 10;
+$totalUsuariosTotal = count($usuarios);
+$totalPaginas = ceil($totalUsuariosTotal / $itensPorPagina);
+$paginaAtual = isset($_GET['p']) ? max(1, (int)$_GET['p']) : 1;
+$offset = ($paginaAtual - 1) * $itensPorPagina;
+$usuariosExibir = array_slice($usuarios, $offset, $itensPorPagina);
 ?>
 
 <!DOCTYPE html>
@@ -131,8 +143,8 @@ $total_usuarios_comuns = count(array_filter($usuarios, fn($u) => $u['tipo'] === 
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (count($usuarios) > 0): ?>
-                        <?php foreach ($usuarios as $usuario): ?>
+                    <?php if (count($usuariosExibir) > 0): ?>
+                        <?php foreach ($usuariosExibir as $usuario): ?>
                             <tr>
                                 <td>
                                     <strong><?php echo htmlspecialchars($usuario['nome']); ?></strong>
@@ -174,13 +186,28 @@ $total_usuarios_comuns = count(array_filter($usuarios, fn($u) => $u['tipo'] === 
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="5" class="empty-message">
+                            <td colspan="6" class="empty-message">
                                 Nenhum usuário encontrado
                             </td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
+
+            <!-- CONTROLES DE PAGINAÇÃO -->
+            <?php if ($totalPaginas > 1): ?>
+                <div class="pagination" style="display: flex; justify-content: center; gap: 15px; margin-top: 25px; align-items: center;">
+                    <?php if ($paginaAtual > 1): ?>
+                        <a href="?p=<?php echo $paginaAtual - 1; ?>&busca=<?php echo urlencode($busca); ?>&tipo=<?php echo urlencode($filtro_tipo); ?>" class="btn-secondary" style="text-decoration: none;">← Anterior</a>
+                    <?php endif; ?>
+                    
+                    <span style="font-weight: bold; color: var(--muted);">Página <?php echo $paginaAtual; ?> de <?php echo $totalPaginas; ?></span>
+
+                    <?php if ($paginaAtual < $totalPaginas): ?>
+                        <a href="?p=<?php echo $paginaAtual + 1; ?>&busca=<?php echo urlencode($busca); ?>&tipo=<?php echo urlencode($filtro_tipo); ?>" class="btn-secondary" style="text-decoration: none;">Próxima →</a>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
         </div>
     </main>
 

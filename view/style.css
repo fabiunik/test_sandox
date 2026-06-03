@@ -1057,7 +1057,7 @@ body.gerenciar-perfil { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-s
 body.gerenciar-usuarios { font-family: 'Inter', sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; color: #333; }
 .gerenciar-usuarios .container { max-width: 1200px; margin: auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
 
-body.gerenciar-usuarios .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 2px solid #f1f1f1; padding-bottom: 15px; }
+body.gerenciar-usuarios .header-section { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 25px; border-bottom: 2px solid #f1f1f1; padding-bottom: 15px; }
 .gerenciar-usuarios .btn-new { background: #2563eb; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
 
 .gerenciar-usuarios table { width: 100%; border-collapse: collapse; background: white; }
@@ -1192,6 +1192,7 @@ body.gerenciar-usuarios .header-section { display: flex; justify-content: space-
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
   margin-bottom: 30px;
+  width: 100%;
 }
 
 .stat-card {

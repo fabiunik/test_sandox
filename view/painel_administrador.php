@@ -60,7 +60,7 @@ $total_terapeutas = count(array_filter($usuarios, fn($u) => $u['tipo'] === 'tera
 $total_usuarios_comuns = count(array_filter($usuarios, fn($u) => $u['tipo'] === 'usuario'));
 
 // ====== LÓGICA DE PAGINAÇÃO ======
-$itensPorPagina = 10;
+$itensPorPagina = 6;
 $totalUsuariosTotal = count($usuarios);
 $totalPaginas = ceil($totalUsuariosTotal / $itensPorPagina);
 $paginaAtual = isset($_GET['p']) ? max(1, (int)$_GET['p']) : 1;
@@ -91,10 +91,8 @@ $usuariosExibir = array_slice($usuarios, $offset, $itensPorPagina);
         <?php endif; ?>
 
         <!-- HEADER -->
-        <div class="header-section">
-            <h1>🔑 Painel Administrativo</h1>
+            <h1 class="page-title">🔑 Painel Administrativo</h1>
             <p class="subtitle">Bem-vindo, <?php echo htmlspecialchars($usuarioAtual['nome']); ?></p>
-        </div>
 
         <!-- DASHBOARD ESTATÍSTICAS -->
         <div class="dashboard-stats">
